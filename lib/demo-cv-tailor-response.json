@@ -1,0 +1,37 @@
+{
+  "rewrittenStatement": "Penultimate-year Data Science student with hands-on experience building reproducible analytics workflows in Python and SQL, with a strong interest in applying statistical modelling to improve patient outcomes. Through academic and project work, I have delivered end-to-end analyses from messy dataset cleaning to model evaluation and clear stakeholder communication. I am motivated by Roche's focus on evidence-led healthcare and would bring a practical, collaborative approach to supporting cross-functional teams with high-quality data insights during my placement year.",
+  "skillsAlignment": [
+    {
+      "jdRequirement": "Strong Python skills for data wrangling, model building, and automation",
+      "cvEvidence": "Built a churn prediction pipeline in Python (pandas, scikit-learn) and automated weekly model retraining scripts.",
+      "matchStrength": "strong"
+    },
+    {
+      "jdRequirement": "Ability to communicate findings to non-technical stakeholders",
+      "cvEvidence": "Presented dashboard insights to society committee and documented model assumptions in plain English.",
+      "matchStrength": "moderate"
+    },
+    {
+      "jdRequirement": "Exposure to life sciences, healthcare, or regulated data environments",
+      "cvEvidence": "No direct healthcare domain project currently highlighted; compliance experience not clearly stated.",
+      "matchStrength": "weak"
+    },
+    {
+      "jdRequirement": "SQL and BI tooling for exploratory and reporting workflows",
+      "cvEvidence": "Used SQL for data extraction and Power BI for KPI tracking in university consultancy project.",
+      "matchStrength": "strong"
+    }
+  ],
+  "gapAnalysis": [
+    "Add explicit examples of working with healthcare, biomedical, or sensitive datasets.",
+    "Include one bullet that demonstrates documentation or validation in a regulated context.",
+    "Mention collaboration with cross-functional teams (e.g. scientists, clinicians, product owners) more clearly.",
+    "Quantify impact wherever possible (time saved, model performance uplift, stakeholder outcomes)."
+  ],
+  "suggestedBullets": [
+    "Developed and deployed a Python-based classification workflow that improved F1 score from 0.71 to 0.84 through feature engineering and cross-validation.",
+    "Built SQL queries and Power BI dashboards to monitor 12+ operational KPIs, reducing weekly reporting time by 35%.",
+    "Collaborated with a 4-person multidisciplinary team to translate analytical findings into actionable recommendations for non-technical stakeholders.",
+    "Documented model assumptions, data quality checks, and validation steps to support reproducibility and audit readiness."
+  ]
+}
