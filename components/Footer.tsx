@@ -1,6 +1,7 @@
 import Link from 'next/link'
 
 const footerLinks = [
+  { label: 'AI Tools', href: '/ai-tools' },
   { label: 'Opportunities', href: '/opportunities' },
   { label: 'Blog', href: '/blog' },
   { label: 'Privacy', href: '/privacy' },
