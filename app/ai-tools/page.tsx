@@ -1,12 +1,13 @@
 import Link from 'next/link'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
+import { buttonClasses } from '@/components/ui/buttonStyles'
 import Card from '@/components/ui/Card'
 
 const tools = [
   {
-    title: 'CV Tailorer',
-    description: 'Paste your CV and a job description to get an instant tailored rewrite with strengths and gaps.',
+    title: 'AI CV Tailor',
+    description: 'Build your CV section by section and download a polished, industry-tailored PDF in minutes.',
     href: '/ai-tools/cv-tailor',
     status: 'demo' as const,
   },
@@ -52,10 +53,8 @@ export default function AiToolsPage() {
               <p className="text-sm text-muted leading-relaxed flex-1">{tool.description}</p>
 
               {tool.href ? (
-                <Link href={tool.href} className="w-full sm:w-auto">
-                  <Button size="md" className="w-full sm:w-auto">
-                    Open tool
-                  </Button>
+                <Link href={tool.href} className={buttonClasses('primary', 'md', 'w-full sm:w-auto')}>
+                  Open tool
                 </Link>
               ) : (
                 <Button size="md" variant="ghost" disabled className="w-full sm:w-auto">
