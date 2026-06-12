@@ -8,8 +8,13 @@ import Button from '@/components/ui/Button'
 const navLinks = [
   { label: 'Home', href: '/' },
   { label: 'Opportunities', href: '/opportunities' },
+  { label: 'AI Tools', href: '/ai-tools' },
   { label: 'Blog', href: '/blog' },
 ]
+
+function isActiveLink(pathname: string, href: string): boolean {
+  return pathname === href || (href !== '/' && pathname.startsWith(`${href}/`))
+}
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -48,7 +53,7 @@ export default function Navbar() {
                 href={href}
                 className={[
                   'text-sm font-medium transition-colors duration-150',
-                  pathname === href
+                  isActiveLink(pathname, href)
                     ? 'text-accent'
                     : 'text-muted hover:text-primary',
                 ].join(' ')}
@@ -92,7 +97,7 @@ export default function Navbar() {
                 href={href}
                 className={[
                   'block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                  pathname === href
+                  isActiveLink(pathname, href)
                     ? 'bg-accent-light text-accent'
                     : 'text-muted hover:text-primary hover:bg-gray-50',
                 ].join(' ')}
