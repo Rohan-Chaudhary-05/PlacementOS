@@ -63,6 +63,7 @@ export type Opportunity = {
   company_id: string
   company_name: string
   company_email: string
+  company_website: string | null
   role: string
   description: string
   location: string
@@ -75,11 +76,37 @@ export type Opportunity = {
   deadline: string | null
   company_values: string | null
   requirements: string | null
+  apply_url: string | null
   status: OpportunityStatus
   review_note: string | null
   reviewed_by: string | null
   created_at: string
   updated_at: string
+}
+
+/**
+ * Safe, public projection of an ACCEPTED opportunity — exactly what the
+ * public_opportunities() / public_opportunity() SQL functions return. No
+ * company_email, company_id, or internal review fields are exposed.
+ */
+export type PublicOpportunity = {
+  id: string
+  company_name: string
+  company_website: string | null
+  role: string
+  description: string
+  location: string
+  work_mode: WorkMode
+  salary_min: number
+  salary_max: number
+  currency: string
+  sector: string
+  duration: string
+  deadline: string | null
+  company_values: string | null
+  requirements: string | null
+  apply_url: string | null
+  created_at: string
 }
 
 export type Profile = {

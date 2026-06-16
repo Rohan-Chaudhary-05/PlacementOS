@@ -23,6 +23,8 @@ type FormState = {
   description: string
   companyValues: string
   requirements: string
+  applyUrl: string
+  companyWebsite: string
 }
 
 const initialForm: FormState = {
@@ -37,6 +39,8 @@ const initialForm: FormState = {
   description: '',
   companyValues: '',
   requirements: '',
+  applyUrl: '',
+  companyWebsite: '',
 }
 
 export default function OpportunityForm() {
@@ -218,6 +222,30 @@ export default function OpportunityForm() {
         rows={3}
         placeholder="Degree, skills, or experience you're looking for."
       />
+
+      {/* Application link — where students are sent when they click "Apply". */}
+      <div className="rounded-xl border border-indigo-100 bg-accent-light/40 p-4 space-y-4">
+        <Input
+          id="opp-apply-url"
+          type="url"
+          label="Application link"
+          value={form.applyUrl}
+          onChange={set('applyUrl')}
+          error={errors.applyUrl}
+          placeholder="https://careers.acme.com/placements/data-science"
+          hint="Where students go to apply. Use your ATS / careers page or an application form."
+        />
+        <Input
+          id="opp-company-website"
+          type="url"
+          label="Company website (optional)"
+          value={form.companyWebsite}
+          onChange={set('companyWebsite')}
+          error={errors.companyWebsite}
+          placeholder="https://www.acme.com"
+          hint="Shown on the opportunity page so students can learn about you."
+        />
+      </div>
 
       {formError && (
         <p role="alert" className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2">

@@ -58,6 +58,20 @@ export default function OpportunityCard({
         </div>
       )}
 
+      {o.apply_url && (
+        <div className="mt-4">
+          <p className="text-xs font-semibold text-muted uppercase tracking-wide">Application link</p>
+          <a
+            href={o.apply_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-accent hover:underline mt-1 inline-block break-all"
+          >
+            {o.apply_url}
+          </a>
+        </div>
+      )}
+
       {o.review_note && (
         <div className="mt-4 rounded-lg bg-gray-50 border border-gray-100 px-3 py-2">
           <p className="text-xs font-semibold text-muted uppercase tracking-wide">Reviewer note</p>

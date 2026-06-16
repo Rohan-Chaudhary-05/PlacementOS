@@ -56,6 +56,39 @@ export type OpportunityInput = {
   deadline?: string
   companyValues: string
   requirements?: string
+  applyUrl: string
+  companyWebsite?: string
+}
+
+/**
+ * A safe http(s) URL. Rejects other schemes (javascript:, data:, mailto:) so a
+ * stored "apply" link can never become a script/redirect vector when rendered.
+ */
+export function isValidUrl(value: string): boolean {
+  const trimmed = value.trim()
+  if (trimmed.length === 0 || trimmed.length > 2048) return false
+  // Reject embedded whitespace / control chars (CR/LF/tab). The URL parser would
+  // silently strip them, letting a malformed value validate and then be stored
+  // verbatim — a header-injection / smuggling footgun if ever reused elsewhere.
+  if (/[\s\u0000-\u001F\u007F]/.test(trimmed)) return false
+  let url: URL
+  try {
+    url = new URL(trimmed)
+  } catch {
+    return false
+  }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return false
+  // Must have a real host with a dot (rejects http://localhost, http://foo).
+  return url.hostname.includes('.') && !url.hostname.startsWith('.') && !url.hostname.endsWith('.')
+}
+
+/** Normalise a user-typed link: add https:// if no scheme was given. */
+export function normaliseUrl(value: string): string {
+  const trimmed = value.trim()
+  if (trimmed === '') return ''
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+  // Bare domain like "acme.com/careers" → assume https.
+  return `https://${trimmed}`
 }
 
 export type FieldErrors = Record<string, string>
@@ -97,6 +130,18 @@ export function validateOpportunity(input: OpportunityInput): FieldErrors {
   if (blank(input.sector)) errors.sector = 'Select a sector'
   if (blank(input.duration)) errors.duration = 'Enter the duration (e.g. 12 months)'
   if (blank(input.companyValues)) errors.companyValues = 'Share your company values'
+
+  if (blank(input.applyUrl)) {
+    errors.applyUrl = 'Add the link where students apply'
+  } else if (!isValidUrl(normaliseUrl(input.applyUrl))) {
+    errors.applyUrl = 'Enter a valid web link (e.g. https://careers.acme.com/apply)'
+  }
+
+  // Optional, but if provided it must be a real link.
+  if (typeof input.companyWebsite === 'string' && input.companyWebsite.trim() !== '' &&
+      !isValidUrl(normaliseUrl(input.companyWebsite))) {
+    errors.companyWebsite = 'Enter a valid web link, or leave it blank'
+  }
 
   const min = parseSalary(input.salaryMin)
   const max = parseSalary(input.salaryMax)

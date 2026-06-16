@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/env'
-import { parseSalary, validateOpportunity, type OpportunityInput } from '@/lib/validation'
+import { parseSalary, validateOpportunity, normaliseUrl, type OpportunityInput } from '@/lib/validation'
 import { WORK_MODES, type Opportunity, type WorkMode } from '@/lib/constants'
 import { sendOpportunityEmail } from '@/lib/email'
 
@@ -52,6 +52,8 @@ export async function POST(request: Request) {
     deadline: body.deadline ? String(body.deadline) : '',
     companyValues: String(body.companyValues ?? ''),
     requirements: body.requirements ? String(body.requirements) : '',
+    applyUrl: String(body.applyUrl ?? ''),
+    companyWebsite: body.companyWebsite ? String(body.companyWebsite) : '',
   }
 
   const errors = validateOpportunity(input)
@@ -75,6 +77,8 @@ export async function POST(request: Request) {
     deadline: input.deadline?.trim() || null,
     company_values: input.companyValues.trim(),
     requirements: input.requirements?.trim() || null,
+    apply_url: normaliseUrl(input.applyUrl),
+    company_website: input.companyWebsite?.trim() ? normaliseUrl(input.companyWebsite) : null,
   }
 
   // Defensive: validateOpportunity already checks work_mode, but never insert an invalid enum.
@@ -89,6 +93,18 @@ export async function POST(request: Request) {
     .single()
 
   if (error || !created) {
+    console.error('Opportunity insert failed:', error?.code, error?.message)
+    // Most likely cause on a fresh deploy: migration 0002 (apply_url / company_website)
+    // hasn't been run, so those columns don't exist. Give an actionable message.
+    if (error?.code === '42703' || error?.code === 'PGRST204') {
+      return NextResponse.json(
+        {
+          error:
+            'The database is missing a required migration. Run supabase/migrations/0002_apply_url_and_public_read.sql in the Supabase SQL editor, then try again.',
+        },
+        { status: 503 }
+      )
+    }
     return NextResponse.json({ error: 'Could not save the opportunity. Please try again.' }, { status: 500 })
   }
 

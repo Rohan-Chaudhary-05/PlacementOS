@@ -13,6 +13,10 @@ The app **runs without it** (pages render, but sign-up / login / posting will sh
 2. Paste the entire contents of [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) and click **Run**.
 3. You should see "Success. No rows returned." This creates the `profiles`, `opportunities`,
    and `waitlist_signups` tables, the row-level-security policies, and the auth triggers.
+4. Open a **New query**, paste [`supabase/migrations/0002_apply_url_and_public_read.sql`](supabase/migrations/0002_apply_url_and_public_read.sql),
+   and **Run** it. This adds the `apply_url` / `company_website` columns and the
+   `public_opportunities()` read functions that power the public opportunity detail pages.
+   (If you set up before this migration existed, just run this one file now — it is additive and safe.)
 
 ## 3. Copy your keys into `.env.local`
 Open **Project Settings → API** and copy three values into `.env.local`:

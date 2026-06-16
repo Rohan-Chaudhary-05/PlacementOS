@@ -5,11 +5,13 @@ import { InputHTMLAttributes, forwardRef } from 'react'
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
   error?: string
+  hint?: string
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, className = '', id, ...props }, ref) => {
+  ({ label, error, hint, className = '', id, ...props }, ref) => {
     const errorId = id && error ? `${id}-error` : undefined
+    const hintId = id && hint && !error ? `${id}-hint` : undefined
 
     return (
       <div className="flex flex-col gap-1.5 w-full">
@@ -22,7 +24,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={id}
           aria-invalid={error ? true : undefined}
-          aria-describedby={errorId}
+          aria-describedby={errorId ?? hintId}
           className={[
             'w-full px-4 py-2.5 rounded-lg border bg-white text-primary',
             'placeholder:text-muted text-sm',
@@ -33,6 +35,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           ].join(' ')}
           {...props}
         />
+        {hint && !error && (
+          <p id={hintId} className="text-xs text-muted mt-0.5">
+            {hint}
+          </p>
+        )}
         {error && (
           <p id={errorId} role="alert" className="text-xs text-red-500 mt-0.5">
             {error}

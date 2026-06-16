@@ -9,6 +9,9 @@ import { polishCv } from '@/lib/cv-tailor/polishCv'
 import { downloadCvPdf } from '@/lib/cv-tailor/downloadCvPdf'
 import { validateStep } from '@/lib/cv-tailor/validate'
 import type { CvFormData, CvFormErrors, PolishedCv } from '@/lib/cv-tailor/types'
+import type { CvExtraction } from '@/lib/cv-tailor/extractCv'
+import CvImport from './CvImport'
+import CvManualTag from './CvManualTag'
 import CvPreview from './CvPreview'
 import StepContact from './StepContact'
 import StepSkills from './StepSkills'
@@ -45,10 +48,27 @@ export default function CvWizard() {
   const [generateFailed, setGenerateFailed] = useState(false)
   const [polished, setPolished] = useState<PolishedCv | null>(null)
   const [downloadState, setDownloadState] = useState<'idle' | 'downloading' | 'error'>('idle')
+  const [manual, setManual] = useState<CvExtraction | null>(null)
   const topRef = useRef<HTMLDivElement | null>(null)
 
   function scrollToTop() {
     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  function applyPatch(p: Partial<CvFormData>) {
+    setForm((previous) => ({
+      ...previous,
+      ...p,
+      // Merge contact sub-fields so we never wipe ones the parser didn't find.
+      contact: { ...previous.contact, ...(p.contact ?? {}) },
+    }))
+    setErrors({})
+    setStep(1)
+    scrollToTop()
+  }
+
+  function handleImport(extraction: CvExtraction) {
+    applyPatch(extraction.patch)
   }
 
   function handleChange(patch: Partial<CvFormData>) {
@@ -212,9 +232,35 @@ export default function CvWizard() {
     )
   }
 
+  // ---- Manual tagging fallback ----
+  if (manual) {
+    return (
+      <div ref={topRef} className="max-w-3xl mx-auto">
+        <CvManualTag
+          extraction={manual}
+          onApply={(patch) => {
+            applyPatch(patch)
+            setManual(null)
+          }}
+          onCancel={() => setManual(null)}
+        />
+      </div>
+    )
+  }
+
   // ---- Wizard state ----
   return (
     <div ref={topRef} className="flex flex-col gap-6 max-w-3xl mx-auto">
+      {step === 1 && (
+        <CvImport
+          onImport={handleImport}
+          onManual={(extraction) => {
+            setManual(extraction)
+            scrollToTop()
+          }}
+        />
+      )}
+
       <WizardProgress
         currentStep={step}
         onStepClick={(target) => goToStep(target as WizardStep)}
