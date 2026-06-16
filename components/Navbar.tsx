@@ -4,11 +4,14 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Button from '@/components/ui/Button'
+import { buttonClasses } from '@/components/ui/buttonStyles'
+import { useWaitlist } from '@/components/waitlist/WaitlistProvider'
 
 const navLinks = [
   { label: 'Home', href: '/' },
   { label: 'AI Tools', href: '/ai-tools' },
   { label: 'Opportunities', href: '/opportunities' },
+  { label: 'For Companies', href: '/for-companies' },
   { label: 'Blog', href: '/blog' },
 ]
 
@@ -20,6 +23,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
+  const { open: openWaitlist } = useWaitlist()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -65,8 +69,12 @@ export default function Navbar() {
 
           {/* Desktop CTAs */}
           <div className="hidden md:flex items-center gap-2.5">
-            <Button variant="ghost" size="sm">Sign In</Button>
-            <Button variant="primary" size="sm">Join Waitlist</Button>
+            <Link href="/login" className={buttonClasses('ghost', 'sm')}>
+              Sign In
+            </Link>
+            <Button variant="primary" size="sm" onClick={openWaitlist}>
+              Join Waitlist
+            </Button>
           </div>
 
           {/* Mobile hamburger */}
@@ -107,8 +115,24 @@ export default function Navbar() {
               </Link>
             ))}
             <div className="flex flex-col gap-2 pt-3 mt-3 border-t border-gray-100">
-              <Button variant="ghost" size="md" className="w-full">Sign In</Button>
-              <Button variant="primary" size="md" className="w-full">Join Waitlist</Button>
+              <Link
+                href="/login"
+                className={buttonClasses('ghost', 'md', 'w-full')}
+                onClick={() => setMenuOpen(false)}
+              >
+                Sign In
+              </Link>
+              <Button
+                variant="primary"
+                size="md"
+                className="w-full"
+                onClick={() => {
+                  setMenuOpen(false)
+                  openWaitlist()
+                }}
+              >
+                Join Waitlist
+              </Button>
             </div>
           </div>
         )}

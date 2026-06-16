@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import WaitlistProvider from '@/components/waitlist/WaitlistProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -17,9 +18,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="scroll-smooth">
       <body className={`${inter.className} bg-surface text-primary antialiased`}>
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
+        <WaitlistProvider>
+          <Navbar />
+          <main>{children}</main>
+          <Footer />
+        </WaitlistProvider>
       </body>
     </html>
   )

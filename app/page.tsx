@@ -1,5 +1,11 @@
 import Card from '@/components/ui/Card'
-import WaitlistForm from '@/components/WaitlistForm'
+import JoinWaitlistButton from '@/components/waitlist/JoinWaitlistButton'
+import WaitlistCount from '@/components/waitlist/WaitlistCount'
+import { getWaitlistCount } from '@/lib/waitlist'
+
+// ISR: regenerate the page (and refresh the waitlist count) at most once per day,
+// so the database is queried ~once per day regardless of traffic.
+export const revalidate = 86400
 
 const features = [
   {
@@ -51,7 +57,9 @@ const stats = [
   { value: '4.8★', label: 'Avg. student rating' },
 ]
 
-export default function HomePage() {
+export default async function HomePage() {
+  const waitlistCount = await getWaitlistCount()
+
   return (
     <>
       {/* ── Hero ── */}
@@ -82,10 +90,11 @@ export default function HomePage() {
               Join the waitlist for early access.
             </p>
 
-            {/* Waitlist form */}
+            {/* Waitlist CTA */}
             <div className="max-w-md">
-              <WaitlistForm size="large" />
-              <p className="text-sm text-muted mt-3 flex items-center gap-1.5">
+              <JoinWaitlistButton size="lg">Join the waitlist</JoinWaitlistButton>
+              <WaitlistCount count={waitlistCount} className="mt-4" />
+              <p className="text-sm text-muted mt-2 flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5 text-success flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
@@ -95,7 +104,7 @@ export default function HomePage() {
           </div>
 
           {/* Floating decorative card — hidden on mobile */}
-          <div className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2 w-80 pointer-events-none select-none">
+          <div className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2 scale-[1.2] origin-right w-80 pointer-events-none select-none">
             <div className="bg-white rounded-2xl border border-gray-100 shadow-card-hover p-5 space-y-3 opacity-90">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-muted uppercase tracking-wide">AI Match</span>
@@ -175,10 +184,16 @@ export default function HomePage() {
             Join the waitlist and get early access, plus exclusive placement resources,
             interview guides, and company insights before anyone else.
           </p>
-          <div className="max-w-md mx-auto">
-            <WaitlistForm light size="large" />
+          <div className="flex justify-center">
+            <JoinWaitlistButton
+              variant="secondary"
+              size="lg"
+              className="bg-white !text-accent hover:bg-accent-light"
+            >
+              Join the waitlist
+            </JoinWaitlistButton>
           </div>
-          <p className="text-indigo-300 text-xs mt-4">Built for UK STEM students · Early access closing soon</p>
+          <p className="text-indigo-300 text-xs mt-5">Built for UK STEM students · Early access closing soon</p>
         </div>
       </section>
     </>

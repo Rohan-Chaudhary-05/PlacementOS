@@ -30,6 +30,13 @@ yarn-error.log*
 # vercel
 .vercel
 
+# claude code (local tooling + settings)
+/.claude
+
+# supabase
+/supabase/.branches
+/supabase/.temp
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
