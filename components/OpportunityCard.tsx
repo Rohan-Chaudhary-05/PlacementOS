@@ -41,7 +41,7 @@ export default function OpportunityCard({
         <Badge variant="muted">{WORK_MODE_LABELS[o.work_mode]}</Badge>
         <Badge variant="muted">💷 {formatSalaryRange(o.salary_min, o.salary_max, o.currency)} / yr</Badge>
         <Badge variant="muted">⏱ {o.duration}</Badge>
-        {o.deadline && <Badge variant="muted">Closes {formatDate(o.deadline)}</Badge>}
+        {o.deadline && <Badge variant="muted">Deadline {formatDate(o.deadline)}</Badge>}
       </div>
 
       {o.company_values && (

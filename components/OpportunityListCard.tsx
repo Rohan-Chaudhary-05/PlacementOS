@@ -36,7 +36,7 @@ export default function OpportunityListCard({ opportunity: o }: { opportunity: O
             >
               {o.logo}
             </div>
-            <div className="flex-1 min-w-0 pr-8">
+            <div className="flex-1 min-w-0 pr-16">
               <h3 className="font-semibold text-primary text-sm leading-snug group-hover:text-accent transition-colors">
                 {o.role}
               </h3>
@@ -66,7 +66,7 @@ export default function OpportunityListCard({ opportunity: o }: { opportunity: O
             <div className="text-xs text-muted">
               {o.deadline ? (
                 <>
-                  <span className="font-medium text-primary">Closes:</span> {formatDate(o.deadline)}
+                  <span className="font-medium text-primary">Deadline:</span> {formatDate(o.deadline)}
                 </>
               ) : (
                 <span>{o.isDemo ? 'Sample listing' : 'Open now'}</span>

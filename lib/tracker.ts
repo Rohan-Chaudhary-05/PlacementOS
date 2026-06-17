@@ -82,10 +82,10 @@ export function deadlineLabel(
 ): { text: string; tone: 'red' | 'amber' | 'muted' } | null {
   const d = daysUntil(deadline, now)
   if (d === null) return null
-  if (d < 0) return { text: 'Closed', tone: 'muted' }
-  if (d === 0) return { text: 'Closes today', tone: 'red' }
-  if (d === 1) return { text: 'Closes tomorrow', tone: 'red' }
-  if (d <= 7) return { text: `Closes in ${d} days`, tone: 'red' }
-  if (d <= CLOSING_SOON_DAYS) return { text: `Closes in ${d} days`, tone: 'amber' }
-  return { text: `Closes in ${d} days`, tone: 'muted' }
+  if (d < 0) return { text: 'Deadline passed', tone: 'muted' }
+  if (d === 0) return { text: 'Deadline today', tone: 'red' }
+  if (d === 1) return { text: 'Deadline tomorrow', tone: 'red' }
+  if (d <= 7) return { text: `Deadline in ${d} days`, tone: 'red' }
+  if (d <= CLOSING_SOON_DAYS) return { text: `Deadline in ${d} days`, tone: 'amber' }
+  return { text: `Deadline in ${d} days`, tone: 'muted' }
 }

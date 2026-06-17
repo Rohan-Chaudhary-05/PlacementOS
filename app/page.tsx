@@ -15,8 +15,7 @@ const features = [
       </svg>
     ),
     title: 'Smart Matching',
-    description:
-      'Our AI analyses your skills, degree, and preferences to surface the placements most likely to get you hired — no more scattergun applying.',
+    description: 'AI ranks every placement by how well it fits your degree and goals.',
   },
   {
     icon: (
@@ -25,8 +24,7 @@ const features = [
       </svg>
     ),
     title: 'AI Career Tools',
-    description:
-      'CV tailoring, cover letter generation, and interview prep — all powered by AI trained on real placement success stories from UK STEM students.',
+    description: 'Tailor your CV, draft cover letters and prep for interviews in minutes.',
   },
   {
     icon: (
@@ -35,8 +33,7 @@ const features = [
       </svg>
     ),
     title: 'Application Tracker',
-    description:
-      'Keep every application, deadline, and follow-up in one place. Track your pipeline from first click to offer letter.',
+    description: 'Save roles, tick off applications and never miss a deadline.',
   },
   {
     icon: (
@@ -45,16 +42,8 @@ const features = [
       </svg>
     ),
     title: 'Student Blog',
-    description:
-      'Real placement stories, honest tips, and industry guides written by students who have been through the process at top UK companies.',
+    description: 'Honest placement stories and tips from students who landed the role.',
   },
-]
-
-const stats = [
-  { value: '500+', label: 'Placement listings' },
-  { value: '50+', label: 'Target companies' },
-  { value: '12+', label: 'STEM disciplines' },
-  { value: '4.8★', label: 'Avg. student rating' },
 ]
 
 export default async function HomePage() {
@@ -126,32 +115,14 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── Stats strip ── */}
-      <section className="bg-white border-y border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map(({ value, label }) => (
-              <div key={label} className="text-center">
-                <p className="text-3xl font-bold text-primary">{value}</p>
-                <p className="text-sm text-muted mt-1">{label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── Features ── */}
-      <section className="py-24 bg-surface">
+      <section className="py-20 bg-surface border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 max-w-xl mx-auto">
-            <p className="text-accent text-sm font-semibold uppercase tracking-widest mb-3">Platform features</p>
+          <div className="text-center mb-12 max-w-xl mx-auto">
+            <p className="text-accent text-sm font-semibold uppercase tracking-widest mb-3">Why PlacementOS</p>
             <h2 className="text-3xl sm:text-4xl font-bold text-primary leading-snug">
-              Everything you need to land your placement year
+              Built to get you placed
             </h2>
-            <p className="text-muted mt-4 text-base leading-relaxed">
-              Built with first-hand experience of what it actually takes to secure a
-              placement in the UK STEM market.
-            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
