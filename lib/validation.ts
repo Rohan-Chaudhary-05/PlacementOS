@@ -21,7 +21,13 @@ export function emailDomain(email: string): string {
   return at === -1 ? '' : email.trim().toLowerCase().slice(at + 1)
 }
 
-/** A genuine university / academic address (heuristic — confirmation gates ownership). */
+/**
+ * A genuine university / academic address (heuristic — confirmation gates
+ * ownership). Like isCompanyEmail this is a UX/quality filter, not a trust
+ * boundary: it's enforced client-side at student sign-up only. Student status
+ * grants no privilege beyond the student's own self-scoped tracker (RLS), so
+ * there is intentionally no DB trigger backstop as there is for company emails.
+ */
 export function isAcademicEmail(email: string): boolean {
   if (!isValidEmail(email)) return false
   const domain = emailDomain(email)

@@ -17,6 +17,9 @@ The app **runs without it** (pages render, but sign-up / login / posting will sh
    and **Run** it. This adds the `apply_url` / `company_website` columns and the
    `public_opportunities()` read functions that power the public opportunity detail pages.
    (If you set up before this migration existed, just run this one file now — it is additive and safe.)
+5. Open a **New query**, paste [`supabase/migrations/0003_tracker.sql`](supabase/migrations/0003_tracker.sql),
+   and **Run** it. This adds the `tracked_opportunities` table (with row-level security) that powers
+   the student Application Tracker. Additive and safe to run on an existing database.
 
 ## 3. Copy your keys into `.env.local`
 Open **Project Settings → API** and copy three values into `.env.local`:

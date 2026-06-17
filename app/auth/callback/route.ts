@@ -17,6 +17,9 @@ export async function GET(request: Request) {
   const code = searchParams.get('code')
   const tokenHash = searchParams.get('token_hash')
   const type = searchParams.get('type') as EmailOtpType | null
+  // Our own routing hint, preserved through the PKCE (code) flow where `type`
+  // isn't present. Set by the student sign-up and forgot-password redirects.
+  const flow = searchParams.get('flow')
   const errorDescription = searchParams.get('error_description')
 
   const loginWithError = (message: string) =>
@@ -65,6 +68,19 @@ export async function GET(request: Request) {
     }
   }
 
-  const destination = role === 'student' ? '/waitlist/confirmed' : dashboardPathFor(role)
+  const isRecovery = type === 'recovery' || flow === 'recovery'
+  const isSignup = type === 'signup' || flow === 'signup'
+
+  let destination: string
+  if (isRecovery) {
+    // Password reset: send them to the set-new-password page with their recovery session.
+    destination = '/auth/reset'
+  } else if (role === 'student') {
+    // A fresh student account confirmation → the tracker; a waitlist magic link → confirmed page.
+    destination = isSignup ? '/student/dashboard' : '/waitlist/confirmed'
+  } else {
+    destination = dashboardPathFor(role)
+  }
+
   return NextResponse.redirect(`${origin}${destination}`)
 }

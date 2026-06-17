@@ -8,7 +8,7 @@ export type UserRole = (typeof USER_ROLES)[number]
 export function dashboardPathFor(role: UserRole): string {
   if (role === 'company') return '/company/dashboard'
   if (role === 'staff') return '/staff/dashboard'
-  return '/'
+  return '/student/dashboard'
 }
 
 export const OPPORTUNITY_STATUSES = ['UNDER_REVIEW', 'ACCEPTED', 'DENIED'] as const

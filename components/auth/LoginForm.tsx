@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
@@ -72,16 +73,23 @@ export default function LoginForm({ initialError }: { initialError?: string }) {
         autoComplete="email"
         required
       />
-      <Input
-        id="login-password"
-        type="password"
-        label="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="••••••••"
-        autoComplete="current-password"
-        required
-      />
+      <div>
+        <Input
+          id="login-password"
+          type="password"
+          label="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="••••••••"
+          autoComplete="current-password"
+          required
+        />
+        <div className="text-right mt-1.5">
+          <Link href="/auth/forgot" className="text-xs text-muted hover:text-accent transition-colors">
+            Forgot password?
+          </Link>
+        </div>
+      </div>
       <Button type="submit" variant="primary" size="lg" disabled={loading} className="w-full">
         {loading ? 'Signing in…' : 'Sign in'}
       </Button>

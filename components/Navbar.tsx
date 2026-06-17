@@ -2,10 +2,19 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import { buttonClasses } from '@/components/ui/buttonStyles'
 import { useWaitlist } from '@/components/waitlist/WaitlistProvider'
+import { useTracker } from '@/components/tracker/TrackerProvider'
+import { createClient } from '@/lib/supabase/client'
+import { dashboardPathFor, type UserRole } from '@/lib/constants'
+
+const DASHBOARD_LABELS: Record<UserRole, string> = {
+  student: 'My applications',
+  company: 'Dashboard',
+  staff: 'Review',
+}
 
 const navLinks = [
   { label: 'Home', href: '/' },
@@ -23,7 +32,19 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
   const { open: openWaitlist } = useWaitlist()
+  const { signedIn, role, closingSoonCount } = useTracker()
+
+  async function signOut() {
+    await createClient().auth.signOut()
+    router.replace('/')
+    router.refresh()
+  }
+
+  const dashboardHref = role ? dashboardPathFor(role) : '/login'
+  const dashboardLabel = role ? DASHBOARD_LABELS[role] : ''
+  const showCount = role === 'student' && closingSoonCount > 0
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -69,12 +90,30 @@ export default function Navbar() {
 
           {/* Desktop CTAs */}
           <div className="hidden md:flex items-center gap-2.5">
-            <Link href="/login" className={buttonClasses('ghost', 'sm')}>
-              Sign In
-            </Link>
-            <Button variant="primary" size="sm" onClick={openWaitlist}>
-              Join Waitlist
-            </Button>
+            {signedIn && role ? (
+              <>
+                <Link href={dashboardHref} className={`relative ${buttonClasses('ghost', 'sm')}`}>
+                  {dashboardLabel}
+                  {showCount && (
+                    <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold">
+                      {closingSoonCount}
+                    </span>
+                  )}
+                </Link>
+                <Button variant="ghost" size="sm" onClick={signOut}>
+                  Sign out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" className={buttonClasses('ghost', 'sm')}>
+                  Sign In
+                </Link>
+                <Button variant="primary" size="sm" onClick={openWaitlist}>
+                  Join Waitlist
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile hamburger */}
@@ -115,24 +154,54 @@ export default function Navbar() {
               </Link>
             ))}
             <div className="flex flex-col gap-2 pt-3 mt-3 border-t border-gray-100">
-              <Link
-                href="/login"
-                className={buttonClasses('ghost', 'md', 'w-full')}
-                onClick={() => setMenuOpen(false)}
-              >
-                Sign In
-              </Link>
-              <Button
-                variant="primary"
-                size="md"
-                className="w-full"
-                onClick={() => {
-                  setMenuOpen(false)
-                  openWaitlist()
-                }}
-              >
-                Join Waitlist
-              </Button>
+              {signedIn && role ? (
+                <>
+                  <Link
+                    href={dashboardHref}
+                    className={buttonClasses('ghost', 'md', 'w-full')}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {dashboardLabel}
+                    {showCount && (
+                      <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold">
+                        {closingSoonCount}
+                      </span>
+                    )}
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="md"
+                    className="w-full"
+                    onClick={() => {
+                      setMenuOpen(false)
+                      signOut()
+                    }}
+                  >
+                    Sign out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className={buttonClasses('ghost', 'md', 'w-full')}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Sign In
+                  </Link>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    className="w-full"
+                    onClick={() => {
+                      setMenuOpen(false)
+                      openWaitlist()
+                    }}
+                  >
+                    Join Waitlist
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         )}

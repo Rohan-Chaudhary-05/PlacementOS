@@ -21,12 +21,16 @@ export default async function LoginPage({
   return (
     <AuthCard
       title="Sign in"
-      subtitle="For company and staff accounts."
+      subtitle="Students, companies and staff — sign in to your account."
       footer={
         <>
-          New company?{' '}
+          New here?{' '}
+          <Link href="/student/register" className="text-accent font-medium hover:underline">
+            Student sign-up
+          </Link>{' '}
+          ·{' '}
           <Link href="/company/register" className="text-accent font-medium hover:underline">
-            Create an account
+            Company sign-up
           </Link>
         </>
       }
