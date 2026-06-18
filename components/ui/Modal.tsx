@@ -13,6 +13,15 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null)
   const previouslyFocused = useRef<HTMLElement | null>(null)
 
+  // Keep the latest onClose in a ref so it isn't a dependency of the focus
+  // effect below. A parent that re-renders on each keystroke (e.g. a form modal
+  // updating state) passes a new onClose every render; if that re-ran the effect
+  // it would steal focus back into the dialog after every character typed.
+  const onCloseRef = useRef(onClose)
+  useEffect(() => {
+    onCloseRef.current = onClose
+  })
+
   useEffect(() => {
     if (!open) return
 
@@ -20,7 +29,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose()
+        onCloseRef.current()
         return
       }
       if (e.key !== 'Tab') return
@@ -48,10 +57,11 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
     document.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
 
-    // Move focus into the dialog.
-    const focusable = panelRef.current?.querySelector<HTMLElement>(
-      'input, button, textarea, select, a[href]'
-    )
+    // Move focus into the dialog — prefer the first field so the user can type
+    // straight away, falling back to the first focusable (e.g. the close button).
+    const focusable =
+      panelRef.current?.querySelector<HTMLElement>('input, textarea, select') ??
+      panelRef.current?.querySelector<HTMLElement>('button, a[href]')
     focusable?.focus()
 
     return () => {
@@ -59,7 +69,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
       document.body.style.overflow = ''
       previouslyFocused.current?.focus?.()
     }
-  }, [open, onClose])
+  }, [open])
 
   if (!open) return null
 
