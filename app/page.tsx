@@ -1,4 +1,5 @@
 import Card from '@/components/ui/Card'
+import Reveal from '@/components/ui/Reveal'
 import JoinWaitlistButton from '@/components/waitlist/JoinWaitlistButton'
 import WaitlistCount from '@/components/waitlist/WaitlistCount'
 import { getWaitlistCount } from '@/lib/waitlist'
@@ -118,24 +119,26 @@ export default async function HomePage() {
       {/* ── Features ── */}
       <section className="py-20 bg-surface border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 max-w-xl mx-auto">
+          <Reveal className="text-center mb-12 max-w-xl mx-auto">
             <p className="text-accent text-sm font-semibold uppercase tracking-widest mb-3">Why PlacementOS</p>
             <h2 className="text-3xl sm:text-4xl font-bold text-primary leading-snug">
               Built to get you placed
             </h2>
-          </div>
+          </Reveal>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {features.map((feature) => (
-              <Card key={feature.title} hover className="p-6 flex flex-col gap-4">
-                <div className="w-10 h-10 bg-accent-light rounded-lg flex items-center justify-center flex-shrink-0">
-                  {feature.icon}
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-primary mb-1.5">{feature.title}</h3>
-                  <p className="text-sm text-muted leading-relaxed">{feature.description}</p>
-                </div>
-              </Card>
+            {features.map((feature, i) => (
+              <Reveal key={feature.title} delay={i * 90} className="h-full">
+                <Card hover className="p-6 flex flex-col gap-4 h-full">
+                  <div className="w-10 h-10 bg-accent-light rounded-lg flex items-center justify-center flex-shrink-0">
+                    {feature.icon}
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-primary mb-1.5">{feature.title}</h3>
+                    <p className="text-sm text-muted leading-relaxed">{feature.description}</p>
+                  </div>
+                </Card>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -144,7 +147,7 @@ export default async function HomePage() {
       {/* ── Waitlist CTA ── */}
       <section className="bg-accent relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-indigo-800 opacity-50 pointer-events-none" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+        <Reveal className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4 leading-snug">
             Be first to access PlacementOS
           </h2>
@@ -162,7 +165,7 @@ export default async function HomePage() {
             </JoinWaitlistButton>
           </div>
           <p className="text-indigo-300 text-xs mt-5">Built for UK STEM students · Early access closing soon</p>
-        </div>
+        </Reveal>
       </section>
     </>
   )

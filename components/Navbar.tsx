@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import { buttonClasses } from '@/components/ui/buttonStyles'
-import { useWaitlist } from '@/components/waitlist/WaitlistProvider'
 import { useTracker } from '@/components/tracker/TrackerProvider'
 import { createClient } from '@/lib/supabase/client'
 import { dashboardPathFor, type UserRole } from '@/lib/constants'
@@ -16,11 +15,12 @@ const DASHBOARD_LABELS: Record<UserRole, string> = {
   staff: 'Review',
 }
 
+// Student-facing primary nav. "For Companies" lives in the top-right CTA instead,
+// keeping the student and company entry points clearly separated.
 const navLinks = [
   { label: 'Home', href: '/' },
   { label: 'AI Tools', href: '/ai-tools' },
   { label: 'Opportunities', href: '/opportunities' },
-  { label: 'For Companies', href: '/for-companies' },
   { label: 'Blog', href: '/blog' },
 ]
 
@@ -33,7 +33,6 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
-  const { open: openWaitlist } = useWaitlist()
   const { signedIn, role, closingSoonCount } = useTracker()
 
   async function signOut() {
@@ -106,12 +105,12 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link href="/login" className={buttonClasses('ghost', 'sm')}>
+                <Link href="/for-companies" className={buttonClasses('ghost', 'sm')}>
+                  For Companies
+                </Link>
+                <Link href="/login" className={buttonClasses('primary', 'sm')}>
                   Sign In
                 </Link>
-                <Button variant="primary" size="sm" onClick={openWaitlist}>
-                  Join Waitlist
-                </Button>
               </>
             )}
           </div>
@@ -183,23 +182,19 @@ export default function Navbar() {
               ) : (
                 <>
                   <Link
-                    href="/login"
+                    href="/for-companies"
                     className={buttonClasses('ghost', 'md', 'w-full')}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    For Companies
+                  </Link>
+                  <Link
+                    href="/login"
+                    className={buttonClasses('primary', 'md', 'w-full')}
                     onClick={() => setMenuOpen(false)}
                   >
                     Sign In
                   </Link>
-                  <Button
-                    variant="primary"
-                    size="md"
-                    className="w-full"
-                    onClick={() => {
-                      setMenuOpen(false)
-                      openWaitlist()
-                    }}
-                  >
-                    Join Waitlist
-                  </Button>
                 </>
               )}
             </div>

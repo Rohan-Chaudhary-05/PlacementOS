@@ -9,18 +9,28 @@ const tools = [
     title: 'AI CV Tailor',
     description: 'Build your CV section by section and download a polished, industry-tailored PDF in minutes.',
     href: '/ai-tools/cv-tailor',
+    cta: 'Open tool',
     status: 'demo' as const,
+  },
+  {
+    title: 'Application Tracker',
+    description: 'Save roles, tick off the ones you’ve applied to, and stay ahead of every deadline in one dashboard.',
+    href: '/student/dashboard',
+    cta: 'Open tracker',
+    status: 'live' as const,
   },
   {
     title: 'Cover Letter Generator',
     description: 'Generate role-specific cover letters tuned for placement applications.',
     href: null,
+    cta: null,
     status: 'coming-soon' as const,
   },
   {
     title: 'Interview Prep',
     description: 'Practice technical and behavioural questions with AI-powered feedback.',
     href: null,
+    cta: null,
     status: 'coming-soon' as const,
   },
 ]
@@ -40,11 +50,13 @@ export default function AiToolsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {tools.map((tool) => (
-            <Card key={tool.title} className="p-6 flex flex-col gap-4">
+            <Card key={tool.title} hover={!!tool.href} className="p-6 flex flex-col gap-4">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-lg font-semibold text-primary">{tool.title}</h2>
                 {tool.status === 'demo' ? (
                   <Badge variant="accent">Try it - demo</Badge>
+                ) : tool.status === 'live' ? (
+                  <Badge variant="success">Live</Badge>
                 ) : (
                   <Badge variant="muted">Coming Soon</Badge>
                 )}
@@ -54,7 +66,7 @@ export default function AiToolsPage() {
 
               {tool.href ? (
                 <Link href={tool.href} className={buttonClasses('primary', 'md', 'w-full sm:w-auto')}>
-                  Open tool
+                  {tool.cta}
                 </Link>
               ) : (
                 <Button size="md" variant="ghost" disabled className="w-full sm:w-auto">
