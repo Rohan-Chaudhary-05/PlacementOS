@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { requireRole } from '@/lib/auth'
 import LogoutButton from '@/components/auth/LogoutButton'
 import TrackerBoard from '@/components/tracker/TrackerBoard'
+import ProfileNudge from '@/components/student/ProfileNudge'
 import { buttonClasses } from '@/components/ui/buttonStyles'
 
 export const metadata = { title: 'My applications · PlacementOS' }
@@ -34,6 +35,7 @@ export default async function StudentDashboardPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <ProfileNudge />
         <TrackerBoard />
       </div>
     </div>

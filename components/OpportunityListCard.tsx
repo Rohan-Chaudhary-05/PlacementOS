@@ -1,3 +1,4 @@
+import { type ReactNode } from 'react'
 import Link from 'next/link'
 import Badge from '@/components/ui/Badge'
 import TrackerButton from '@/components/tracker/TrackerButton'
@@ -20,8 +21,27 @@ function matchVariant(match: number): 'success' | 'accent' | 'muted' {
   return 'muted'
 }
 
-/** A public opportunity rendered as a card that links to its detail page. */
-export default function OpportunityListCard({ opportunity: o }: { opportunity: OpportunityView }) {
+/** The non-personalised badge: a demo's hardcoded % or "Live" for real listings. */
+export function defaultMatchBadge(match: number | null): ReactNode {
+  return match !== null ? (
+    <Badge variant={matchVariant(match)}>{match}% match</Badge>
+  ) : (
+    <Badge variant="success">Live</Badge>
+  )
+}
+
+/**
+ * A public opportunity rendered as a card that links to its detail page.
+ * `badge` slots in the match badge (a personalised <MatchBadge> island from the
+ * explorer, or the default when none is supplied).
+ */
+export default function OpportunityListCard({
+  opportunity: o,
+  badge,
+}: {
+  opportunity: OpportunityView
+  badge?: ReactNode
+}) {
   return (
     <div className="relative">
       <Link
@@ -49,11 +69,7 @@ export default function OpportunityListCard({ opportunity: o }: { opportunity: O
 
           {/* Metadata chips */}
           <div className="flex flex-wrap gap-1.5">
-            {o.match !== null ? (
-              <Badge variant={matchVariant(o.match)}>{o.match}% match</Badge>
-            ) : (
-              <Badge variant="success">Live</Badge>
-            )}
+            {badge ?? defaultMatchBadge(o.match)}
             <Badge variant="muted">📍 {o.location}</Badge>
             <Badge variant="muted">{WORK_MODE_LABELS[o.workMode]}</Badge>
             <Badge variant="muted">⏱ {o.duration}</Badge>

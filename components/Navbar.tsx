@@ -92,6 +92,11 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-2.5">
             {signedIn && role ? (
               <>
+                {role === 'student' && (
+                  <Link href="/student/profile" className={buttonClasses('ghost', 'sm')}>
+                    Profile
+                  </Link>
+                )}
                 <Link href={dashboardHref} className={`relative ${buttonClasses('ghost', 'sm')}`}>
                   {dashboardLabel}
                   {showCount && (
@@ -156,6 +161,15 @@ export default function Navbar() {
             <div className="flex flex-col gap-2 pt-3 mt-3 border-t border-gray-100">
               {signedIn && role ? (
                 <>
+                  {role === 'student' && (
+                    <Link
+                      href="/student/profile"
+                      className={buttonClasses('ghost', 'md', 'w-full')}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Match profile
+                    </Link>
+                  )}
                   <Link
                     href={dashboardHref}
                     className={buttonClasses('ghost', 'md', 'w-full')}

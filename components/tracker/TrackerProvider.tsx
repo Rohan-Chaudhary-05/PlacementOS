@@ -19,6 +19,7 @@ import {
   type TrackSnapshot,
   type TrackState,
 } from '@/lib/tracker'
+import type { StudentProfile } from '@/lib/match'
 
 type TrackerContextValue = {
   ready: boolean
@@ -32,6 +33,9 @@ type TrackerContextValue = {
   markApplied: (ref: string) => void
   setStage: (ref: string, state: TrackState) => void
   remove: (ref: string) => void
+  /** The signed-in student's match profile (null if none / not a student). */
+  profile: StudentProfile | null
+  updateProfile: (next: StudentProfile) => Promise<boolean>
 }
 
 const TrackerContext = createContext<TrackerContextValue | null>(null)
@@ -65,6 +69,9 @@ export default function TrackerProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<TrackedRow[]>([])
   const itemsRef = useRef(items)
   itemsRef.current = items
+  const [profile, setProfile] = useState<StudentProfile | null>(null)
+  const profileRef = useRef(profile)
+  profileRef.current = profile
 
   const isStudent = role === 'student'
 
@@ -87,26 +94,35 @@ export default function TrackerProvider({ children }: { children: ReactNode }) {
         setSignedIn(false)
         setRole(null)
         setItems([])
+        setProfile(null)
         setReady(true)
         return
       }
       if (active) setSignedIn(true)
-      const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+      const { data: profileRow } = await supabase.from('profiles').select('role').eq('id', user.id).single()
       if (!active) return
-      const nextRole = (profile?.role as UserRole) ?? 'student'
+      const nextRole = (profileRow?.role as UserRole) ?? 'student'
       setRole(nextRole)
       if (nextRole === 'student') {
         try {
-          const res = await fetch('/api/tracker')
-          if (res.ok && active) {
-            const json = await res.json()
+          const [trackerRes, profileRes] = await Promise.all([
+            fetch('/api/tracker'),
+            fetch('/api/student/profile'),
+          ])
+          if (active && trackerRes.ok) {
+            const json = await trackerRes.json()
             setItems((json.items ?? []) as TrackedRow[])
           }
+          if (active && profileRes.ok) {
+            const json = await profileRes.json()
+            setProfile((json.profile ?? null) as StudentProfile | null)
+          }
         } catch {
-          /* leave empty */
+          /* leave defaults */
         }
       } else {
         setItems([])
+        setProfile(null)
       }
       if (active) setReady(true)
     }
@@ -201,13 +217,34 @@ export default function TrackerProvider({ children }: { children: ReactNode }) {
   // update + per-ref revert).
   const setStage = useCallback((ref: string, state: TrackState) => mutate(ref, state), [mutate])
 
+  // Optimistically update the match profile so badges/sort refresh instantly,
+  // then persist; revert on failure.
+  const updateProfile = useCallback(async (next: StudentProfile): Promise<boolean> => {
+    const prev = profileRef.current
+    setProfile(next)
+    try {
+      const res = await fetch('/api/student/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(next),
+      })
+      if (!res.ok) throw new Error()
+      const { profile: saved } = await res.json()
+      if (saved) setProfile(saved as StudentProfile)
+      return true
+    } catch {
+      setProfile(prev)
+      return false
+    }
+  }, [])
+
   const closingSoonCount = items.filter(
     (i) => i.state === 'SAVED' && isClosingSoon(i.snapshot.deadline)
   ).length
 
   return (
     <TrackerContext.Provider
-      value={{ ready, signedIn, role, isStudent, items, closingSoonCount, getState, save, markApplied, setStage, remove }}
+      value={{ ready, signedIn, role, isStudent, items, closingSoonCount, getState, save, markApplied, setStage, remove, profile, updateProfile }}
     >
       {children}
     </TrackerContext.Provider>

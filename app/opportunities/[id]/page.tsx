@@ -4,6 +4,8 @@ import type { Metadata } from 'next'
 import Badge from '@/components/ui/Badge'
 import DemoApplyButton from '@/components/DemoApplyButton'
 import TrackerButton from '@/components/tracker/TrackerButton'
+import MatchBadge from '@/components/match/MatchBadge'
+import MatchBreakdown from '@/components/match/MatchBreakdown'
 import { buttonClasses } from '@/components/ui/buttonStyles'
 import { WORK_MODE_LABELS } from '@/lib/constants'
 import { formatDate, formatSalaryRange } from '@/lib/format'
@@ -66,7 +68,7 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-card p-6 sm:p-8">
               <div className="flex flex-wrap items-center gap-2 mb-3">
                 <Badge variant="accent">{o.sector}</Badge>
-                {o.match !== null && <Badge variant="success">{o.match}% match</Badge>}
+                <MatchBadge opp={o} fallback={o.match !== null ? <Badge variant="success">{o.match}% match</Badge> : null} />
                 {o.isDemo && <Badge variant="muted">Sample listing</Badge>}
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-primary leading-tight">{o.role}</h1>
@@ -166,6 +168,11 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-2">Track it</p>
                 <TrackerButton opportunityRef={o.id} variant="detail" />
+              </div>
+
+              {/* Personalised "why this matches you" (students with a profile). */}
+              <div className="mt-4 empty:hidden">
+                <MatchBreakdown opp={o} />
               </div>
 
               {o.deadline && (

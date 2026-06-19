@@ -1,7 +1,8 @@
 // Pure validation helpers — no browser or Node APIs, safe on client and server.
 // NOTE: tsconfig target is es2020; avoid the regex `u` flag (not needed here).
 
-import { FREE_EMAIL_PROVIDERS, WORK_MODES, type WorkMode } from './constants'
+import { FREE_EMAIL_PROVIDERS, SECTORS, WORK_MODES, type Sector, type WorkMode } from './constants'
+import type { StudentProfile } from './match'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 // Academic domains: .ac.<cc> (ac.uk, ac.nz…), .edu, or .edu.<cc> (edu.au…).
@@ -163,6 +164,74 @@ export function validateOpportunity(input: OpportunityInput): FieldErrors {
   }
 
   return errors
+}
+
+export type StudentProfileInput = {
+  discipline?: unknown
+  study_year?: unknown
+  skills?: unknown
+  target_sectors?: unknown
+  work_modes?: unknown
+  preferred_locations?: unknown
+  min_salary?: unknown
+}
+
+function cleanStr(value: unknown, max: number): { value: string | null; tooLong: boolean } {
+  if (typeof value !== 'string') return { value: null, tooLong: false }
+  const trimmed = value.trim()
+  if (trimmed === '') return { value: null, tooLong: false }
+  return { value: trimmed.slice(0, max), tooLong: trimmed.length > max }
+}
+
+/**
+ * Validate + normalise a student match profile. Shared by the client form and
+ * the PUT /api/student/profile route (server is the trust boundary). Returns
+ * inline `errors` plus a `clean` profile safe to upsert. Unknown sectors / work
+ * modes are dropped; blank fields become null (= "no preference").
+ */
+export function validateStudentProfile(input: StudentProfileInput): {
+  errors: FieldErrors
+  clean: StudentProfile
+} {
+  const errors: FieldErrors = {}
+
+  const discipline = cleanStr(input.discipline, 120)
+  if (discipline.tooLong) errors.discipline = 'Keep this under 120 characters'
+  const studyYear = cleanStr(input.study_year, 40)
+  if (studyYear.tooLong) errors.study_year = 'Keep this short'
+  const skills = cleanStr(input.skills, 2000)
+  if (skills.tooLong) errors.skills = 'Keep your skills under 2000 characters'
+  const locations = cleanStr(input.preferred_locations, 500)
+  if (locations.tooLong) errors.preferred_locations = 'Keep this under 500 characters'
+
+  const target_sectors = Array.isArray(input.target_sectors)
+    ? Array.from(new Set(input.target_sectors.filter((s): s is Sector => SECTORS.includes(s as Sector)))).slice(0, 12)
+    : []
+  const work_modes = Array.isArray(input.work_modes)
+    ? Array.from(new Set(input.work_modes.filter((m): m is WorkMode => WORK_MODES.includes(m as WorkMode)))).slice(0, 3)
+    : []
+
+  let min_salary: number | null = null
+  const rawSalary = input.min_salary
+  if (rawSalary !== null && rawSalary !== undefined && String(rawSalary).trim() !== '') {
+    const parsed = parseSalary(rawSalary as string | number)
+    if (!Number.isInteger(parsed) || parsed < 0 || parsed > MAX_SALARY) {
+      errors.min_salary = 'Enter a whole number, or leave it blank'
+    } else {
+      min_salary = parsed
+    }
+  }
+
+  const clean: StudentProfile = {
+    discipline: discipline.value,
+    study_year: studyYear.value,
+    skills: skills.value,
+    target_sectors,
+    work_modes,
+    preferred_locations: locations.value,
+    min_salary,
+  }
+  return { errors, clean }
 }
 
 export function isValidName(value: string): boolean {
