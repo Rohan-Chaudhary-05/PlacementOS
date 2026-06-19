@@ -14,6 +14,8 @@ import {
   type TrackState,
   type TrackedRow,
 } from '@/lib/tracker'
+import { deadlineEvents } from '@/lib/calendar'
+import CalendarExportButton from './CalendarExportButton'
 import { useTracker } from './TrackerProvider'
 
 const SELECT_CLASSES =
@@ -173,6 +175,13 @@ export default function TrackerBoard() {
           <p className="text-xs text-muted">Closing soon</p>
         </button>
       </div>
+
+      {/* Export deadlines to calendar (only when there's something to export) */}
+      {deadlineEvents(items).length > 0 && (
+        <div className="flex justify-end">
+          <CalendarExportButton />
+        </div>
+      )}
 
       {/* Filter bar */}
       <div className="flex flex-col sm:flex-row gap-2.5">

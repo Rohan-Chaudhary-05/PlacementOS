@@ -94,7 +94,7 @@ export const READINESS_TASKS: ReadinessTask[] = [
   // Manual — the student ticks these off themselves.
   { key: 'cv-polished', label: 'Polish your CV', description: 'Tailor your CV to your target industry.', href: '/ai-tools/cv-tailor', kind: 'manual' },
   { key: 'target-sectors', label: 'Set your target sectors', description: 'Decide which fields you’re aiming for.', href: '/opportunities', kind: 'manual' },
-  { key: 'star-answers', label: 'Prepare STAR answers', description: 'Draft examples for common competencies.', kind: 'manual' },
+  { key: 'star-answers', label: 'Prepare STAR answers', description: 'Draft examples for common competencies.', href: '/ai-tools/interview-prep', kind: 'manual' },
 ]
 
 /** The manual-task keys the checklist API will accept (server-side allow-list). */
