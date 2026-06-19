@@ -15,9 +15,9 @@ const tools = [
   {
     title: 'Application Tracker',
     description: 'Save roles, tick off the ones you’ve applied to, and stay ahead of every deadline in one dashboard.',
-    href: '/student/dashboard',
-    cta: 'Open tracker',
-    status: 'live' as const,
+    href: null,
+    cta: null,
+    status: 'coming-soon' as const,
   },
   {
     title: 'Cover Letter Generator',
@@ -55,8 +55,6 @@ export default function AiToolsPage() {
                 <h2 className="text-lg font-semibold text-primary">{tool.title}</h2>
                 {tool.status === 'demo' ? (
                   <Badge variant="accent">Try it - demo</Badge>
-                ) : tool.status === 'live' ? (
-                  <Badge variant="success">Live</Badge>
                 ) : (
                   <Badge variant="muted">Coming Soon</Badge>
                 )}

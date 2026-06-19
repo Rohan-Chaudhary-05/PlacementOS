@@ -62,7 +62,7 @@ export default async function HomePage() {
             {/* Pill badge */}
             <div className="inline-flex items-center gap-2 bg-accent-light text-accent text-xs font-semibold px-3.5 py-1.5 rounded-full mb-8 border border-indigo-200">
               <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />
-              Now accepting waitlist registrations
+              Built for UK STEM students 🇬🇧
             </div>
 
             {/* Headline */}
@@ -76,7 +76,7 @@ export default async function HomePage() {
 
             {/* Subheadline */}
             <p className="text-lg sm:text-xl text-muted leading-relaxed mb-10 max-w-lg">
-              The AI-powered platform built by placement students, for placement students.
+              The AI-powered placement platform built by and for UK STEM students.
               Join the waitlist for early access.
             </p>
 
@@ -85,7 +85,10 @@ export default async function HomePage() {
               <JoinWaitlistButton size="lg">Join the waitlist</JoinWaitlistButton>
               <WaitlistCount count={waitlistCount} className="mt-4" />
               <p className="text-sm text-muted mt-2">
-                Get early access to placements matched to your degree, skills, and goals.
+                Get early access to UK placements matched to your degree, skills, and goals.
+              </p>
+              <p className="text-xs font-medium text-muted/90 mt-4">
+                For students in Engineering · Computer Science · Maths · Physics · Life Sciences
               </p>
             </div>
           </div>
@@ -122,7 +125,7 @@ export default async function HomePage() {
           <Reveal className="text-center mb-12 max-w-xl mx-auto">
             <p className="text-accent text-sm font-semibold uppercase tracking-widest mb-3">Why PlacementOS</p>
             <h2 className="text-3xl sm:text-4xl font-bold text-primary leading-snug">
-              Built to get you placed
+              Built to get UK STEM students placed
             </h2>
           </Reveal>
 
