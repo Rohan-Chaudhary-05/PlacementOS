@@ -30,6 +30,7 @@ type TrackerContextValue = {
   getState: (ref: string) => TrackState | undefined
   save: (ref: string) => void
   markApplied: (ref: string) => void
+  setStage: (ref: string, state: TrackState) => void
   remove: (ref: string) => void
 }
 
@@ -196,6 +197,9 @@ export default function TrackerProvider({ children }: { children: ReactNode }) {
 
   const save = useCallback((ref: string) => mutate(ref, 'SAVED'), [mutate])
   const markApplied = useCallback((ref: string) => mutate(ref, 'APPLIED'), [mutate])
+  // Generic stage transition for the pipeline board (reuses mutate's optimistic
+  // update + per-ref revert).
+  const setStage = useCallback((ref: string, state: TrackState) => mutate(ref, state), [mutate])
 
   const closingSoonCount = items.filter(
     (i) => i.state === 'SAVED' && isClosingSoon(i.snapshot.deadline)
@@ -203,7 +207,7 @@ export default function TrackerProvider({ children }: { children: ReactNode }) {
 
   return (
     <TrackerContext.Provider
-      value={{ ready, signedIn, role, isStudent, items, closingSoonCount, getState, save, markApplied, remove }}
+      value={{ ready, signedIn, role, isStudent, items, closingSoonCount, getState, save, markApplied, setStage, remove }}
     >
       {children}
     </TrackerContext.Provider>

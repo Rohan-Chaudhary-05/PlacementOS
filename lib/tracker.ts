@@ -4,11 +4,37 @@
 import type { WorkMode } from './constants'
 import type { OpportunityView } from './opportunities'
 
-export const TRACK_STATES = ['SAVED', 'APPLIED'] as const
+// The application pipeline, in funnel order. This array is the single source of
+// truth — isTrackState, the DB CHECK (migration 0004) and the board columns all
+// follow it.
+export const TRACK_STATES = ['SAVED', 'APPLIED', 'INTERVIEW', 'OFFER', 'REJECTED'] as const
 export type TrackState = (typeof TRACK_STATES)[number]
 
 /** Items closing within this many days are surfaced as "closing soon". */
 export const CLOSING_SOON_DAYS = 14
+
+/** Per-stage display metadata for badges and pipeline columns. */
+export type TrackStateMeta = {
+  label: string
+  /** Funnel position (0 = earliest). Drives PIPELINE_ORDER + column order. */
+  order: number
+  description: string
+  /** Badge classes (bg + text + border), matching the app's pill palette. */
+  badge: string
+}
+
+export const TRACK_STATE_META: Record<TrackState, TrackStateMeta> = {
+  SAVED: { order: 0, label: 'Saved', description: 'Shortlisted to apply', badge: 'bg-accent-light text-accent border border-indigo-100' },
+  APPLIED: { order: 1, label: 'Applied', description: 'Application submitted', badge: 'bg-blue-50 text-blue-600 border border-blue-100' },
+  INTERVIEW: { order: 2, label: 'Interview', description: 'Interview stage', badge: 'bg-amber-50 text-amber-600 border border-amber-100' },
+  OFFER: { order: 3, label: 'Offer', description: 'Offer received', badge: 'bg-green-50 text-green-700 border border-green-100' },
+  REJECTED: { order: 4, label: 'Rejected', description: 'Not progressing', badge: 'bg-gray-100 text-gray-500 border border-gray-200' },
+}
+
+/** Pipeline stages as ordered columns (SAVED → … → REJECTED). */
+export const PIPELINE_ORDER: readonly TrackState[] = [...TRACK_STATES].sort(
+  (a, b) => TRACK_STATE_META[a].order - TRACK_STATE_META[b].order
+)
 
 /** Denormalised display copy of an opportunity, stored on the tracked row. */
 export type TrackSnapshot = {
@@ -36,7 +62,7 @@ export type TrackedRow = {
 }
 
 export function isTrackState(value: unknown): value is TrackState {
-  return value === 'SAVED' || value === 'APPLIED'
+  return typeof value === 'string' && (TRACK_STATES as readonly string[]).includes(value)
 }
 
 /** Build the stored snapshot from an opportunity view (server-side source of truth). */

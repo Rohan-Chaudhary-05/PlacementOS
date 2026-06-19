@@ -3,14 +3,21 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import Badge from '@/components/ui/Badge'
-import Button from '@/components/ui/Button'
 import { buttonClasses } from '@/components/ui/buttonStyles'
 import { WORK_MODES, WORK_MODE_LABELS, type WorkMode } from '@/lib/constants'
-import { formatSalaryRange } from '@/lib/format'
-import { deadlineLabel, isClosingSoon, daysUntil, type TrackedRow } from '@/lib/tracker'
+import {
+  deadlineLabel,
+  isClosingSoon,
+  daysUntil,
+  PIPELINE_ORDER,
+  TRACK_STATE_META,
+  type TrackState,
+  type TrackedRow,
+} from '@/lib/tracker'
 import { useTracker } from './TrackerProvider'
 
-type Tab = 'SAVED' | 'APPLIED' | 'ALL'
+const SELECT_CLASSES =
+  'w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-medium text-primary focus:outline-none focus:ring-2 focus:ring-accent'
 
 function DeadlineBadge({ deadline }: { deadline: string | null }) {
   const label = deadlineLabel(deadline)
@@ -25,60 +32,55 @@ function DeadlineBadge({ deadline }: { deadline: string | null }) {
 }
 
 function ItemCard({ row }: { row: TrackedRow }) {
-  const { save, markApplied, remove } = useTracker()
+  const { setStage, remove } = useTracker()
   const s = row.snapshot
   const ref = row.opportunity_ref
+  // Deadlines only matter before an outcome — hide once past the application.
+  const showDeadline = row.state === 'SAVED' || row.state === 'APPLIED'
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-card p-4 sm:p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <Link href={`/opportunities/${ref}`} className="font-semibold text-primary text-sm leading-snug hover:text-accent transition-colors">
-            {s.role || 'Opportunity'}
-          </Link>
-          <p className="text-accent text-sm font-medium mt-0.5 truncate">{s.companyName}</p>
-        </div>
-        {row.state === 'APPLIED' ? (
-          <Badge variant="success" className="flex-shrink-0">✓ Applied</Badge>
-        ) : (
-          <Badge variant="accent" className="flex-shrink-0">Saved</Badge>
-        )}
-      </div>
+    <div className="bg-white rounded-xl border border-gray-100 shadow-card p-4">
+      <Link href={`/opportunities/${ref}`} className="font-semibold text-primary text-sm leading-snug hover:text-accent transition-colors">
+        {s.role || 'Opportunity'}
+      </Link>
+      <p className="text-accent text-sm font-medium mt-0.5 truncate">{s.companyName}</p>
 
       <div className="flex flex-wrap gap-1.5 mt-3">
         {s.location && <Badge variant="muted">📍 {s.location}</Badge>}
         {s.workMode && <Badge variant="muted">{WORK_MODE_LABELS[s.workMode]}</Badge>}
-        {s.salaryMin > 0 && (
-          <Badge variant="muted">💷 {formatSalaryRange(s.salaryMin, s.salaryMax, s.currency)} / yr</Badge>
-        )}
         {s.sector && <Badge variant="default">{s.sector}</Badge>}
-        <DeadlineBadge deadline={s.deadline} />
+        {showDeadline && <DeadlineBadge deadline={s.deadline} />}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-gray-50">
-        <Link href={`/opportunities/${ref}`} className={buttonClasses('ghost', 'sm')}>
-          View
-        </Link>
-        {s.applyUrl && (
-          <a href={s.applyUrl} target="_blank" rel="noopener noreferrer" className={buttonClasses('secondary', 'sm')}>
-            Apply ↗
-          </a>
-        )}
-        {row.state === 'SAVED' ? (
-          <Button variant="primary" size="sm" onClick={() => markApplied(ref)}>
-            Mark applied
-          </Button>
-        ) : (
-          <Button variant="ghost" size="sm" onClick={() => save(ref)}>
-            Move to saved
-          </Button>
-        )}
-        <button
-          type="button"
-          onClick={() => remove(ref)}
-          className="ml-auto text-xs text-muted hover:text-red-500 transition-colors"
+      <div className="mt-3 pt-3 border-t border-gray-50 space-y-2">
+        <select
+          value={row.state}
+          onChange={(e) => setStage(ref, e.target.value as TrackState)}
+          className={SELECT_CLASSES}
+          aria-label="Application stage"
         >
-          Remove
-        </button>
+          {PIPELINE_ORDER.map((st) => (
+            <option key={st} value={st}>
+              {TRACK_STATE_META[st].label}
+            </option>
+          ))}
+        </select>
+        <div className="flex items-center gap-3 text-xs">
+          <Link href={`/opportunities/${ref}`} className="text-accent font-medium hover:underline">
+            View
+          </Link>
+          {s.applyUrl && (
+            <a href={s.applyUrl} target="_blank" rel="noopener noreferrer" className="text-accent font-medium hover:underline">
+              Apply ↗
+            </a>
+          )}
+          <button
+            type="button"
+            onClick={() => remove(ref)}
+            className="ml-auto text-muted hover:text-red-500 transition-colors"
+          >
+            Remove
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -86,36 +88,46 @@ function ItemCard({ row }: { row: TrackedRow }) {
 
 export default function TrackerBoard() {
   const { ready, items, closingSoonCount } = useTracker()
-  const [tab, setTab] = useState<Tab>('SAVED')
   const [sector, setSector] = useState('All')
   const [workMode, setWorkMode] = useState<'All' | WorkMode>('All')
   const [closingSoonOnly, setClosingSoonOnly] = useState(false)
   const [search, setSearch] = useState('')
 
-  const savedCount = items.filter((i) => i.state === 'SAVED').length
-  const appliedCount = items.filter((i) => i.state === 'APPLIED').length
   const sectors = useMemo(
     () => ['All', ...Array.from(new Set(items.map((i) => i.snapshot.sector).filter(Boolean)))],
     [items]
   )
 
+  // One pass for the per-stage funnel counts (drives the summary chips).
+  const counts = useMemo(() => {
+    const c = Object.fromEntries(PIPELINE_ORDER.map((s) => [s, 0])) as Record<TrackState, number>
+    for (const i of items) c[i.state]++
+    return c
+  }, [items])
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     return items
-      .filter((i) => (tab === 'ALL' ? true : i.state === tab))
       .filter((i) => (closingSoonOnly ? i.state === 'SAVED' && isClosingSoon(i.snapshot.deadline) : true))
       .filter((i) => (sector === 'All' ? true : i.snapshot.sector === sector))
       .filter((i) => (workMode === 'All' ? true : i.snapshot.workMode === workMode))
       .filter((i) =>
         q === '' ? true : `${i.snapshot.role} ${i.snapshot.companyName}`.toLowerCase().includes(q)
       )
-      .sort((a, b) => {
-        // Urgent SAVED items first (soonest deadline), otherwise keep newest-first order.
-        const da = a.state === 'SAVED' && isClosingSoon(a.snapshot.deadline) ? daysUntil(a.snapshot.deadline)! : Infinity
-        const db = b.state === 'SAVED' && isClosingSoon(b.snapshot.deadline) ? daysUntil(b.snapshot.deadline)! : Infinity
-        return da - db
-      })
-  }, [items, tab, closingSoonOnly, sector, workMode, search])
+  }, [items, closingSoonOnly, sector, workMode, search])
+
+  // Group the filtered rows into pipeline columns. Within SAVED, surface the
+  // most-urgent (soonest deadline) first; other stages keep newest-first order.
+  const byStage = useMemo(() => {
+    const groups = Object.fromEntries(PIPELINE_ORDER.map((s) => [s, [] as TrackedRow[]])) as Record<TrackState, TrackedRow[]>
+    for (const i of filtered) groups[i.state].push(i)
+    groups.SAVED.sort((a, b) => {
+      const da = isClosingSoon(a.snapshot.deadline) ? daysUntil(a.snapshot.deadline)! : Infinity
+      const db = isClosingSoon(b.snapshot.deadline) ? daysUntil(b.snapshot.deadline)! : Infinity
+      return da - db
+    })
+    return groups
+  }, [filtered])
 
   if (!ready) {
     return (
@@ -133,8 +145,8 @@ export default function TrackerBoard() {
         <h2 className="text-lg font-semibold text-primary">Nothing tracked yet</h2>
         <p className="text-sm text-muted mt-1.5 max-w-sm mx-auto">
           Browse placements and tap <span className="font-medium text-primary">Save to apply</span> or{' '}
-          <span className="font-medium text-primary">Mark as applied</span>. They&apos;ll show up here with
-          deadline reminders.
+          <span className="font-medium text-primary">Mark as applied</span>. They&apos;ll show up here and move through your
+          pipeline as you progress.
         </p>
         <Link href="/opportunities" className={buttonClasses('primary', 'md', 'mt-6')}>
           Browse opportunities
@@ -145,44 +157,25 @@ export default function TrackerBoard() {
 
   return (
     <div className="space-y-5">
-      {/* Stat chips */}
-      <div className="grid grid-cols-3 gap-3">
+      {/* Funnel summary chips + closing-soon toggle */}
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+        {PIPELINE_ORDER.map((st) => (
+          <div key={st} className="rounded-xl border border-gray-100 bg-white p-3">
+            <p className="text-xl font-bold text-primary">{counts[st]}</p>
+            <p className="text-xs text-muted">{TRACK_STATE_META[st].label}</p>
+          </div>
+        ))}
         <button
-          onClick={() => { setTab('SAVED'); setClosingSoonOnly(false) }}
-          className={`rounded-xl border p-3 text-left transition-colors ${tab === 'SAVED' && !closingSoonOnly ? 'border-accent bg-accent-light/40' : 'border-gray-100 bg-white hover:border-gray-200'}`}
-        >
-          <p className="text-2xl font-bold text-primary">{savedCount}</p>
-          <p className="text-xs text-muted">To apply</p>
-        </button>
-        <button
-          onClick={() => { setTab('APPLIED'); setClosingSoonOnly(false) }}
-          className={`rounded-xl border p-3 text-left transition-colors ${tab === 'APPLIED' ? 'border-accent bg-accent-light/40' : 'border-gray-100 bg-white hover:border-gray-200'}`}
-        >
-          <p className="text-2xl font-bold text-primary">{appliedCount}</p>
-          <p className="text-xs text-muted">Applied</p>
-        </button>
-        <button
-          onClick={() => { setTab('SAVED'); setClosingSoonOnly(true) }}
+          onClick={() => setClosingSoonOnly((v) => !v)}
           className={`rounded-xl border p-3 text-left transition-colors ${closingSoonOnly ? 'border-red-300 bg-red-50' : 'border-gray-100 bg-white hover:border-gray-200'}`}
         >
-          <p className={`text-2xl font-bold ${closingSoonCount > 0 ? 'text-red-600' : 'text-primary'}`}>{closingSoonCount}</p>
+          <p className={`text-xl font-bold ${closingSoonCount > 0 ? 'text-red-600' : 'text-primary'}`}>{closingSoonCount}</p>
           <p className="text-xs text-muted">Closing soon</p>
         </button>
       </div>
 
       {/* Filter bar */}
       <div className="flex flex-col sm:flex-row gap-2.5">
-        <div className="inline-flex rounded-lg border border-gray-200 p-0.5 bg-white">
-          {(['SAVED', 'APPLIED', 'ALL'] as Tab[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => { setTab(t); if (t !== 'SAVED') setClosingSoonOnly(false) }}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${tab === t ? 'bg-accent text-white' : 'text-muted hover:text-primary'}`}
-            >
-              {t === 'SAVED' ? 'To apply' : t === 'APPLIED' ? 'Applied' : 'All'}
-            </button>
-          ))}
-        </div>
         <input
           type="search"
           value={search}
@@ -211,16 +204,36 @@ export default function TrackerBoard() {
         </select>
       </div>
 
-      {/* List */}
-      {filtered.length === 0 ? (
-        <p className="text-sm text-muted text-center py-10">No opportunities match these filters.</p>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((row) => (
-            <ItemCard key={row.opportunity_ref} row={row} />
-          ))}
-        </div>
-      )}
+      {/* Pipeline columns — kanban on desktop, stacked labelled sections on mobile.
+          (A drag-and-drop board is a possible future enhancement; the per-card
+          stage <select> keeps this dependency-free and accessible.) */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        {PIPELINE_ORDER.map((st) => {
+          const group = byStage[st]
+          const muted = st === 'REJECTED'
+          return (
+            <div key={st} className={muted ? 'opacity-90' : ''}>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">
+                  {TRACK_STATE_META[st].label}
+                </h3>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${TRACK_STATE_META[st].badge}`}>
+                  {group.length}
+                </span>
+              </div>
+              <div className="space-y-3">
+                {group.length === 0 ? (
+                  <p className="text-xs text-muted/60 py-6 text-center border border-dashed border-gray-100 rounded-xl">
+                    —
+                  </p>
+                ) : (
+                  group.map((row) => <ItemCard key={row.opportunity_ref} row={row} />)
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
