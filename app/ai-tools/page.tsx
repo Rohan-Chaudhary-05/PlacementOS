@@ -21,10 +21,10 @@ const tools = [
   },
   {
     title: 'Cover Letter Generator',
-    description: 'Generate role-specific cover letters tuned for placement applications.',
-    href: null,
-    cta: null,
-    status: 'coming-soon' as const,
+    description: 'Generate a tailored, role-specific cover letter and download it as a polished PDF in minutes.',
+    href: '/ai-tools/cover-letter',
+    cta: 'Open tool',
+    status: 'demo' as const,
   },
   {
     title: 'Interview Prep',
