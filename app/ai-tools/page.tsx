@@ -28,10 +28,10 @@ const tools = [
   },
   {
     title: 'Interview Prep',
-    description: 'Practice technical and behavioural questions with AI-powered feedback.',
-    href: null,
-    cta: null,
-    status: 'coming-soon' as const,
+    description: 'Practise behavioural, motivational and technical questions with STAR scaffolding for your field.',
+    href: '/ai-tools/interview-prep',
+    cta: 'Open tool',
+    status: 'demo' as const,
   },
 ]
 
