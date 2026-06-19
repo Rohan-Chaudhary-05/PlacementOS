@@ -14,13 +14,16 @@ export default async function StudentDashboardPage() {
   return (
     <div className="min-h-screen bg-surface">
       <div className="bg-white border-b border-gray-100">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold text-accent uppercase tracking-widest">Application tracker</p>
+              <p className="text-xs font-semibold text-accent uppercase tracking-widest">Application pipeline</p>
               <h1 className="text-2xl font-bold text-primary mt-1">My applications</h1>
             </div>
             <div className="flex items-center gap-2.5">
+              <Link href="/placement-guide" className={buttonClasses('ghost', 'md')}>
+                Placement Guide
+              </Link>
               <Link href="/opportunities" className={buttonClasses('primary', 'md')}>
                 Browse opportunities
               </Link>
@@ -30,7 +33,7 @@ export default async function StudentDashboardPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <TrackerBoard />
       </div>
     </div>

@@ -20,6 +20,12 @@ The app **runs without it** (pages render, but sign-up / login / posting will sh
 5. Open a **New query**, paste [`supabase/migrations/0003_tracker.sql`](supabase/migrations/0003_tracker.sql),
    and **Run** it. This adds the `tracked_opportunities` table (with row-level security) that powers
    the student Application Tracker. Additive and safe to run on an existing database.
+6. Open a **New query**, paste [`supabase/migrations/0004_pipeline_states.sql`](supabase/migrations/0004_pipeline_states.sql),
+   and **Run** it. This widens the tracker's `state` to the full application pipeline
+   (Saved → Applied → Interview → Offer → Rejected). Existing rows are unaffected; safe to re-run.
+7. Open a **New query**, paste [`supabase/migrations/0005_checklist.sql`](supabase/migrations/0005_checklist.sql),
+   and **Run** it. This adds the `student_checklist` table (with row-level security) that stores the
+   manual ticks on the Placement Guide readiness checklist. Additive and safe to run on an existing database.
 
 ## 3. Copy your keys into `.env.local`
 Open **Project Settings → API** and copy three values into `.env.local`:

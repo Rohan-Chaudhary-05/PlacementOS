@@ -21,6 +21,7 @@ const navLinks = [
   { label: 'Home', href: '/' },
   { label: 'AI Tools', href: '/ai-tools' },
   { label: 'Opportunities', href: '/opportunities' },
+  { label: 'Placement Guide', href: '/placement-guide' },
   { label: 'Blog', href: '/blog' },
 ]
 
