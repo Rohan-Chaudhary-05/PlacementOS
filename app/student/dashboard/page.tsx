@@ -22,9 +22,6 @@ export default async function StudentDashboardPage() {
               <h1 className="text-2xl font-bold text-primary mt-1">My applications</h1>
             </div>
             <div className="flex items-center gap-2.5">
-              <Link href="/placement-guide" className={buttonClasses('ghost', 'md')}>
-                Placement Guide
-              </Link>
               <Link href="/opportunities" className={buttonClasses('primary', 'md')}>
                 Browse opportunities
               </Link>

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import { buttonClasses } from '@/components/ui/buttonStyles'
+import StudentMenu from '@/components/StudentMenu'
 import { useTracker } from '@/components/tracker/TrackerProvider'
 import { createClient } from '@/lib/supabase/client'
 import { dashboardPathFor, type UserRole } from '@/lib/constants'
@@ -21,7 +22,6 @@ const navLinks = [
   { label: 'Home', href: '/' },
   { label: 'AI Tools', href: '/ai-tools' },
   { label: 'Opportunities', href: '/opportunities' },
-  { label: 'Placement Guide', href: '/placement-guide' },
   { label: 'Blog', href: '/blog' },
 ]
 
@@ -91,24 +91,18 @@ export default function Navbar() {
           {/* Desktop CTAs */}
           <div className="hidden md:flex items-center gap-2.5">
             {signedIn && role ? (
-              <>
-                {role === 'student' && (
-                  <Link href="/student/profile" className={buttonClasses('ghost', 'sm')}>
-                    Profile
+              role === 'student' ? (
+                <StudentMenu />
+              ) : (
+                <>
+                  <Link href={dashboardHref} className={buttonClasses('ghost', 'sm')}>
+                    {dashboardLabel}
                   </Link>
-                )}
-                <Link href={dashboardHref} className={`relative ${buttonClasses('ghost', 'sm')}`}>
-                  {dashboardLabel}
-                  {showCount && (
-                    <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold">
-                      {closingSoonCount}
-                    </span>
-                  )}
-                </Link>
-                <Button variant="ghost" size="sm" onClick={signOut}>
-                  Sign out
-                </Button>
-              </>
+                  <Button variant="ghost" size="sm" onClick={signOut}>
+                    Sign out
+                  </Button>
+                </>
+              )
             ) : (
               <>
                 <Link href="/for-companies" className={buttonClasses('ghost', 'sm')}>
@@ -167,7 +161,7 @@ export default function Navbar() {
                       className={buttonClasses('ghost', 'md', 'w-full')}
                       onClick={() => setMenuOpen(false)}
                     >
-                      Match profile
+                      Profile
                     </Link>
                   )}
                   <Link
@@ -191,7 +185,7 @@ export default function Navbar() {
                       signOut()
                     }}
                   >
-                    Sign out
+                    Log out
                   </Button>
                 </>
               ) : (

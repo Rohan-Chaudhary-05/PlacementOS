@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import Card from '@/components/ui/Card'
 import Input from '@/components/ui/Input'
 import Textarea from '@/components/ui/Textarea'
 import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
+import Reveal from '@/components/ui/Reveal'
 import { SECTORS, WORK_MODES, WORK_MODE_LABELS } from '@/lib/constants'
 import { validateStudentProfile, type FieldErrors } from '@/lib/validation'
 import { useTracker } from '@/components/tracker/TrackerProvider'
@@ -17,6 +18,25 @@ const YEAR_OPTIONS = [
   { value: 'Final year', label: 'Final year' },
   { value: 'Postgraduate', label: 'Postgraduate' },
 ]
+
+function CheckIcon() {
+  return (
+    <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24" aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+  )
+}
+
+function SectionHeading({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+  return (
+    <div className="flex items-center gap-2.5">
+      <span className="w-8 h-8 rounded-lg bg-accent-light flex items-center justify-center flex-shrink-0 text-accent">
+        {icon}
+      </span>
+      <h2 className="text-sm font-semibold text-primary uppercase tracking-wide">{children}</h2>
+    </div>
+  )
+}
 
 function PillGroup({
   options,
@@ -38,12 +58,14 @@ function PillGroup({
             onClick={() => onToggle(opt.value)}
             aria-pressed={active}
             className={[
-              'px-3 py-1.5 rounded-full text-xs font-medium border transition-colors',
+              'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border',
+              'transition-all duration-150 active:scale-95',
               active
-                ? 'bg-accent text-white border-accent'
+                ? 'bg-accent text-white border-accent shadow-sm'
                 : 'bg-white text-muted border-gray-200 hover:border-accent hover:text-accent',
             ].join(' ')}
           >
+            {active && <CheckIcon />}
             {opt.label}
           </button>
         )
@@ -80,6 +102,34 @@ export default function ProfileForm() {
     }
     setSeeded(true)
   }, [ready, profile, seeded])
+
+  // Live "profile strength" — one point per dimension filled in. Purely visual
+  // feedback (everything is optional); it nudges students toward sharper matches.
+  const { pct, filled, total, strengthLabel } = useMemo(() => {
+    const flags = [
+      discipline.trim() !== '',
+      studyYear.trim() !== '',
+      skills.trim() !== '',
+      sectors.length > 0,
+      workModes.length > 0,
+      locations.trim() !== '',
+      minSalary.trim() !== '',
+    ]
+    const filled = flags.filter(Boolean).length
+    const total = flags.length
+    const pct = Math.round((filled / total) * 100)
+    const strengthLabel =
+      filled === 0
+        ? 'Add your details to start matching'
+        : filled <= 2
+          ? 'Getting started — add a few more'
+          : filled <= 4
+            ? 'Looking good — keep going'
+            : filled <= 6
+              ? 'Strong profile'
+              : 'Complete — your matches are razor-sharp'
+    return { pct, filled, total, strengthLabel }
+  }, [discipline, studyYear, skills, sectors, workModes, locations, minSalary])
 
   const toggle = (list: string[], setList: (v: string[]) => void, value: string) =>
     setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value])
@@ -118,32 +168,95 @@ export default function ProfileForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-      <Card className="p-6 sm:p-7 space-y-4">
-        <h2 className="text-sm font-semibold text-primary uppercase tracking-wide">About you</h2>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <Input id="discipline" label="Discipline / degree" value={discipline} onChange={(e) => setDiscipline(e.target.value)} error={errors.discipline} placeholder="e.g. Computer Science, Mechanical Engineering" />
-          <Select id="study_year" label="Year of study" value={studyYear} onChange={(e) => setStudyYear(e.target.value)} placeholder="Select…" options={YEAR_OPTIONS} />
-        </div>
-        <Textarea id="skills" label="Skills" value={skills} onChange={(e) => setSkills(e.target.value)} error={errors.skills} rows={2} placeholder="Python, SQL, machine learning, teamwork" hint="Comma or newline separated — the closer these are to a listing's requirements, the higher the match." />
-      </Card>
+      {/* Profile strength meter */}
+      <Reveal>
+        <Card className="p-5 sm:p-6">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <span className="w-8 h-8 rounded-lg bg-accent-light flex items-center justify-center flex-shrink-0 text-accent">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24" aria-hidden>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m6-16l2.4 6.1L22 11l-6.6 2.4L13 20l-2.4-6.6L4 11l6.6-1.9L13 3z" />
+                </svg>
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-primary">Profile strength</p>
+                <p className="text-xs text-muted mt-0.5">{strengthLabel}</p>
+              </div>
+            </div>
+            <span className="text-2xl font-bold text-accent tabular-nums leading-none">
+              {pct}
+              <span className="text-sm font-semibold text-muted">%</span>
+            </span>
+          </div>
+          <div
+            role="progressbar"
+            aria-valuenow={pct}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="Profile strength"
+            className="mt-3.5 w-full bg-gray-100 rounded-full h-2 overflow-hidden"
+          >
+            <div
+              className="h-2 rounded-full bg-gradient-to-r from-accent to-indigo-400 transition-all duration-500 ease-out"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <p className="sr-only" aria-live="polite">
+            Profile strength {pct}%. {strengthLabel}. {filled} of {total} sections completed.
+          </p>
+        </Card>
+      </Reveal>
 
-      <Card className="p-6 sm:p-7 space-y-5">
-        <h2 className="text-sm font-semibold text-primary uppercase tracking-wide">What you&apos;re looking for</h2>
-        <div>
-          <p className="text-sm font-medium text-primary mb-2">Target sectors</p>
-          <PillGroup options={SECTORS.map((s) => ({ value: s, label: s }))} selected={sectors} onToggle={(v) => toggle(sectors, setSectors, v)} />
-        </div>
-        <div>
-          <p className="text-sm font-medium text-primary mb-2">Work mode</p>
-          <PillGroup options={WORK_MODES.map((m) => ({ value: m, label: WORK_MODE_LABELS[m] }))} selected={workModes} onToggle={(v) => toggle(workModes, setWorkModes, v)} />
-        </div>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <Input id="preferred_locations" label="Preferred locations" value={locations} onChange={(e) => setLocations(e.target.value)} error={errors.preferred_locations} placeholder="London, Cambridge" hint="Comma separated, or leave blank for anywhere." />
-          <Input id="min_salary" label="Minimum salary (per year)" value={minSalary} onChange={(e) => setMinSalary(e.target.value)} error={errors.min_salary} placeholder="£22,000" />
-        </div>
-      </Card>
+      {/* About you */}
+      <Reveal delay={80}>
+        <Card className="p-6 sm:p-7 space-y-4">
+          <SectionHeading
+            icon={
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            }
+          >
+            About you
+          </SectionHeading>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Input id="discipline" label="Discipline / degree" value={discipline} onChange={(e) => setDiscipline(e.target.value)} error={errors.discipline} placeholder="e.g. Computer Science, Mechanical Engineering" />
+            <Select id="study_year" label="Year of study" value={studyYear} onChange={(e) => setStudyYear(e.target.value)} placeholder="Select…" options={YEAR_OPTIONS} />
+          </div>
+          <Textarea id="skills" label="Skills" value={skills} onChange={(e) => setSkills(e.target.value)} error={errors.skills} rows={2} placeholder="Python, SQL, machine learning, teamwork" hint="Comma or newline separated — the closer these are to a listing's requirements, the higher the match." />
+        </Card>
+      </Reveal>
 
-      <div className="flex items-center gap-3">
+      {/* What you're looking for */}
+      <Reveal delay={160}>
+        <Card className="p-6 sm:p-7 space-y-5">
+          <SectionHeading
+            icon={
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24" aria-hidden>
+                <circle cx="12" cy="12" r="9" />
+                <circle cx="12" cy="12" r="5" />
+                <circle cx="12" cy="12" r="1.6" />
+              </svg>
+            }
+          >
+            What you&apos;re looking for
+          </SectionHeading>
+          <div>
+            <p className="text-sm font-medium text-primary mb-2">Target sectors</p>
+            <PillGroup options={SECTORS.map((s) => ({ value: s, label: s }))} selected={sectors} onToggle={(v) => toggle(sectors, setSectors, v)} />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-primary mb-2">Work mode</p>
+            <PillGroup options={WORK_MODES.map((m) => ({ value: m, label: WORK_MODE_LABELS[m] }))} selected={workModes} onToggle={(v) => toggle(workModes, setWorkModes, v)} />
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Input id="preferred_locations" label="Preferred locations" value={locations} onChange={(e) => setLocations(e.target.value)} error={errors.preferred_locations} placeholder="London, Cambridge" hint="Comma separated, or leave blank for anywhere." />
+            <Input id="min_salary" label="Minimum salary (per year)" value={minSalary} onChange={(e) => setMinSalary(e.target.value)} error={errors.min_salary} placeholder="£22,000" />
+          </div>
+        </Card>
+      </Reveal>
+
+      <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" variant="primary" size="lg" disabled={status === 'saving'}>
           {status === 'saving' ? 'Saving…' : 'Save match profile'}
         </Button>

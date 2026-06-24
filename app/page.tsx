@@ -87,9 +87,6 @@ export default async function HomePage() {
               <p className="text-sm text-muted mt-2">
                 Get early access to UK placements matched to your degree, skills, and goals.
               </p>
-              <p className="text-xs font-medium text-muted/90 mt-4">
-                For students in Engineering · Computer Science · Maths · Physics · Life Sciences
-              </p>
             </div>
           </div>
 
