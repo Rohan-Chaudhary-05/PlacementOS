@@ -7,6 +7,9 @@ import Textarea from '@/components/ui/Textarea'
 import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
 import Reveal from '@/components/ui/Reveal'
+import CvImport from '@/components/cv-tailor/CvImport'
+import { parseSkillList } from '@/lib/cv-tailor/engine'
+import { profileFromCv, type ProfileCvPatch } from '@/lib/cv-tailor/profileFromCv'
 import { SECTORS, WORK_MODES, WORK_MODE_LABELS } from '@/lib/constants'
 import { validateStudentProfile, type FieldErrors } from '@/lib/validation'
 import { useTracker } from '@/components/tracker/TrackerProvider'
@@ -134,6 +137,19 @@ export default function ProfileForm() {
   const toggle = (list: string[], setList: (v: string[]) => void, value: string) =>
     setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value])
 
+  // Merge a CV-derived patch in, non-destructively: only fill blank text fields,
+  // and union (dedupe) skills with anything already typed.
+  const applyCvPatch = (patch: ProfileCvPatch) => {
+    if (patch.discipline && discipline.trim() === '') setDiscipline(patch.discipline)
+    if (patch.preferred_locations && locations.trim() === '') setLocations(patch.preferred_locations)
+    if (patch.skills) {
+      // Union + dedupe, then re-cap to the same 2000-char limit validation enforces
+      // (the union can push a near-full field past the cap and block Save otherwise).
+      const merged = parseSkillList([skills, patch.skills].filter(Boolean).join(', '))
+      setSkills(merged.join(', ').slice(0, 2000))
+    }
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const { errors: nextErrors, clean } = validateStudentProfile({
@@ -168,6 +184,17 @@ export default function ProfileForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+      {/* Autofill from an uploaded CV (reuses the in-browser CV parser) */}
+      <Reveal>
+        <CvImport
+          onImport={(e) => applyCvPatch(profileFromCv(e).patch)}
+          deriveFound={(e) => profileFromCv(e).filled}
+          heading="Have a CV? Autofill your profile"
+          subheading="Upload it and we'll pull out your degree, skills, and location."
+          reviewLabel="Review the fields below, then save your profile."
+        />
+      </Reveal>
+
       {/* Profile strength meter */}
       <Reveal>
         <Card className="p-5 sm:p-6">

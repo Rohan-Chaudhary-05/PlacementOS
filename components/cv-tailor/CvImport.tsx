@@ -13,13 +13,33 @@ import {
 type Status = 'idle' | 'parsing' | 'done' | 'error'
 
 interface CvImportProps {
-  /** Called with the parsed result so the wizard can prefill its fields. */
+  /** Called with the parsed result so the consumer can prefill its fields. */
   onImport: (extraction: CvExtraction) => void
   /** When provided, low-confidence parses offer a "tag it manually" action. */
   onManual?: (extraction: CvExtraction) => void
+  /** Heading above the drop zone. */
+  heading?: string
+  /** Sub-line under the heading. */
+  subheading?: string
+  /** Bolded call-to-action shown after a successful import. */
+  reviewLabel?: string
+  /**
+   * Overrides which labels count as "filled" — for consumers that only care about
+   * a subset of the extraction (e.g. the profile importer maps a CV to just
+   * discipline/skills/location). Drives BOTH the success summary AND whether
+   * onImport fires. Defaults to the full extraction.found.
+   */
+  deriveFound?: (extraction: CvExtraction) => string[]
 }
 
-export default function CvImport({ onImport, onManual }: CvImportProps) {
+export default function CvImport({
+  onImport,
+  onManual,
+  heading = 'Already have a CV?',
+  subheading = "Upload it and we'll autofill the form. Or just start from scratch below.",
+  reviewLabel = 'Review and edit everything below before generating.',
+  deriveFound,
+}: CvImportProps) {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [status, setStatus] = useState<Status>('idle')
   const [dragging, setDragging] = useState(false)
@@ -36,7 +56,8 @@ export default function CvImport({ onImport, onManual }: CvImportProps) {
       const extraction = extractCvFromText(text)
       setResult(extraction)
       setStatus('done')
-      if (extraction.found.length > 0) onImport(extraction)
+      const effectiveFound = deriveFound ? deriveFound(extraction) : extraction.found
+      if (effectiveFound.length > 0) onImport(extraction)
     } catch (err) {
       setStatus('error')
       if (err instanceof UnsupportedCvFileError || err instanceof CvParseError) {
@@ -76,7 +97,8 @@ export default function CvImport({ onImport, onManual }: CvImportProps) {
 
   // ---- Success summary ----
   if (status === 'done' && result) {
-    const filledSomething = result.found.length > 0
+    const found = deriveFound ? deriveFound(result) : result.found
+    const filledSomething = found.length > 0
     return (
       <div className="rounded-2xl border border-gray-100 bg-white shadow-card p-5 sm:p-6">
         <div className="flex items-start gap-3">
@@ -98,8 +120,8 @@ export default function CvImport({ onImport, onManual }: CvImportProps) {
                   Imported from <span className="font-normal text-muted break-all">{fileName}</span>
                 </p>
                 <p className="text-sm text-muted mt-1">
-                  We filled in: {result.found.join(' · ')}.{' '}
-                  <span className="text-primary font-medium">Review and edit everything below</span> before generating.
+                  We filled in: {found.join(' · ')}.{' '}
+                  <span className="text-primary font-medium">{reviewLabel}</span>
                 </p>
                 {result.confidence === 'low' && (
                   <p className="text-xs text-amber-600 mt-2">
@@ -113,19 +135,21 @@ export default function CvImport({ onImport, onManual }: CvImportProps) {
                   We couldn&apos;t read much from <span className="font-normal text-muted break-all">{fileName}</span>
                 </p>
                 <p className="text-sm text-muted mt-1">
-                  It may be a scanned image or an unusual layout. You can tag the text manually, or just fill in the
-                  form below.
+                  It may be a scanned image or an unusual layout.{' '}
+                  {onManual
+                    ? 'You can tag the text manually, or just fill in the form below.'
+                    : 'You can fill in the fields below manually.'}
                 </p>
               </>
             )}
 
             <div className="flex flex-wrap items-center gap-2 mt-3">
               {onManual && (result.confidence !== 'high' || !filledSomething) && (
-                <Button variant="secondary" size="sm" onClick={() => onManual(result)}>
+                <Button type="button" variant="secondary" size="sm" onClick={() => onManual(result)}>
                   Tag sections manually
                 </Button>
               )}
-              <Button variant="ghost" size="sm" onClick={reset}>
+              <Button type="button" variant="ghost" size="sm" onClick={reset}>
                 Upload a different file
               </Button>
             </div>
@@ -140,8 +164,8 @@ export default function CvImport({ onImport, onManual }: CvImportProps) {
     <div className="rounded-2xl border border-gray-100 bg-white shadow-card p-5 sm:p-6">
       <div className="flex items-center justify-between gap-3 mb-3">
         <div>
-          <h2 className="text-sm font-semibold text-primary">Already have a CV?</h2>
-          <p className="text-xs text-muted mt-0.5">Upload it and we&apos;ll autofill the form. Or just start from scratch below.</p>
+          <h2 className="text-sm font-semibold text-primary">{heading}</h2>
+          <p className="text-xs text-muted mt-0.5">{subheading}</p>
         </div>
       </div>
 
