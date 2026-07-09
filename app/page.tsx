@@ -99,7 +99,7 @@ export default async function HomePage() {
               </div>
               <div>
                 <p className="font-semibold text-primary text-sm">Data Science Placement</p>
-                <p className="text-accent text-sm font-medium">AstraZeneca</p>
+                <p className="text-accent text-sm font-medium">Helixon Bio</p>
               </div>
               <div className="flex gap-2 flex-wrap">
                 <span className="text-xs bg-gray-50 text-muted px-2 py-1 rounded-full border border-gray-100">📍 Cambridge</span>

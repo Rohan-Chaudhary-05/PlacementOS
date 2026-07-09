@@ -1,9 +1,6 @@
 import 'server-only'
 import { WORK_MODE_LABELS, type Opportunity } from './constants'
 
-const DEFAULT_TO = 'Rohan.sc.33@gmail.com'
-const DEFAULT_FROM = 'PlacementOS <onboarding@resend.dev>'
-
 /** Strip CR/LF so user-supplied text can't inject email headers. */
 function singleLine(value: string): string {
   return value.replace(/[\r\n]+/g, ' ').trim()
@@ -18,12 +15,11 @@ export async function sendOpportunityEmail(
   opp: Opportunity
 ): Promise<{ emailed: boolean; error?: string }> {
   const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey) return { emailed: false }
-
   // Lowercase the recipient — Resend's testing mode matches the account email
   // case-sensitively, and email addresses are case-insensitive in practice.
-  const to = (process.env.NOTIFY_EMAIL || DEFAULT_TO).trim().toLowerCase()
-  const from = process.env.RESEND_FROM || DEFAULT_FROM
+  const to = (process.env.NOTIFY_EMAIL || '').trim().toLowerCase()
+  const from = (process.env.RESEND_FROM || '').trim()
+  if (!apiKey || !to || !from) return { emailed: false }
 
   const salary = `${opp.currency} ${opp.salary_min.toLocaleString()}–${opp.salary_max.toLocaleString()}`
   const text = [

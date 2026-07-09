@@ -40,7 +40,7 @@ export default function StepTarget({ form, errors, onChange }: StepTargetProps) 
       <Input
         id="targetCompany"
         label="Specific company (optional)"
-        placeholder="e.g. Rolls-Royce, AstraZeneca, Monzo"
+        placeholder="e.g. Helixon Bio, Fenchip Systems"
         value={form.targetCompany}
         onChange={(event) => onChange({ targetCompany: event.target.value })}
       />

@@ -15,19 +15,9 @@ const SECTOR_COLOURS: Record<string, string> = {
   'Energy & Sustainability': 'bg-emerald-50 text-emerald-700',
 }
 
-function matchVariant(match: number): 'success' | 'accent' | 'muted' {
-  if (match >= 85) return 'success'
-  if (match >= 70) return 'accent'
-  return 'muted'
-}
-
-/** The non-personalised badge: a demo's hardcoded % or "Live" for real listings. */
-export function defaultMatchBadge(match: number | null): ReactNode {
-  return match !== null ? (
-    <Badge variant={matchVariant(match)}>{match}% match</Badge>
-  ) : (
-    <Badge variant="success">Live</Badge>
-  )
+/** The non-personalised badge shown until a student's own match score loads. */
+export function defaultMatchBadge(isDemo: boolean): ReactNode {
+  return isDemo ? <Badge variant="muted">Sample</Badge> : <Badge variant="success">Live</Badge>
 }
 
 /**
@@ -69,7 +59,7 @@ export default function OpportunityListCard({
 
           {/* Metadata chips */}
           <div className="flex flex-wrap gap-1.5">
-            {badge ?? defaultMatchBadge(o.match)}
+            {badge ?? defaultMatchBadge(o.isDemo)}
             <Badge variant="muted">📍 {o.location}</Badge>
             <Badge variant="muted">{WORK_MODE_LABELS[o.workMode]}</Badge>
             <Badge variant="muted">⏱ {o.duration}</Badge>
