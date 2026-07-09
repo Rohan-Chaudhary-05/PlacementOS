@@ -7,7 +7,20 @@ export const metadata: Metadata = {
     'Generate a tailored placement cover letter from your details and target role, and download it as a PDF.',
 }
 
-export default function CoverLetterPage() {
+type PageProps = { searchParams: Promise<Record<string, string | string[] | undefined>> }
+
+/** First non-empty value of a (possibly repeated) query param. */
+function first(value: string | string[] | undefined): string | undefined {
+  const raw = Array.isArray(value) ? value[0] : value
+  const trimmed = raw?.trim()
+  return trimmed ? trimmed : undefined
+}
+
+export default async function CoverLetterPage({ searchParams }: PageProps) {
+  const sp = await searchParams
+  // Deep links from opportunity pages / tracker cards preload the role.
+  const prefill = { role: first(sp.role), company: first(sp.company), sector: first(sp.sector) }
+
   return (
     <section className="min-h-screen bg-surface py-14 sm:py-18">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -20,7 +33,7 @@ export default function CoverLetterPage() {
           </p>
         </div>
 
-        <CoverLetterGenerator />
+        <CoverLetterGenerator prefill={prefill} />
       </div>
     </section>
   )

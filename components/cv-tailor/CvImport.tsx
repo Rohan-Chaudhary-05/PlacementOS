@@ -82,7 +82,7 @@ export default function CvImport({
     if (!isSupportedCvFile(file)) {
       setStatus('error')
       setFileName(file.name)
-      setError('Please drop a PDF or a .txt file.')
+      setError('Please drop a PDF, Word (.docx), or .txt file.')
       return
     }
     handleFile(file)
@@ -194,7 +194,7 @@ export default function CvImport({
         <input
           ref={inputRef}
           type="file"
-          accept=".pdf,.txt,.md,application/pdf,text/plain"
+          accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
           className="sr-only"
           onChange={onInputChange}
         />
@@ -211,7 +211,7 @@ export default function CvImport({
             <p className="text-sm font-medium text-primary">
               Drop your CV here, or <span className="text-accent">browse</span>
             </p>
-            <p className="text-xs text-muted">PDF or TXT · up to 10 MB</p>
+            <p className="text-xs text-muted">PDF, Word (.docx) or TXT · up to 10 MB</p>
           </>
         )}
       </div>

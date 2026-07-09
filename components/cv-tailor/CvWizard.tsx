@@ -23,7 +23,28 @@ type WizardStep = 1 | 2 | 3 | 4
 
 const TOTAL_STEPS = WIZARD_STEPS.length as 4
 
-function createEmptyForm(): CvFormData {
+export type ToolPrefill = { role?: string; company?: string; sector?: string }
+
+// Opportunity sector (lib/constants SECTORS) → the closest StemIndustryId.
+// Kept in sync with the copy in CoverLetterGenerator.tsx — the tools share no lib file.
+const SECTOR_TO_INDUSTRY: Record<string, CvFormData['industry']> = {
+  'Software & IT': 'software-it',
+  'Data Science & AI': 'data-ai',
+  'Aerospace & Defence': 'aerospace-defence',
+  'Biotech & Pharma': 'biotech-pharma',
+  'Healthcare & MedTech': 'healthcare-medtech',
+  'Energy & Sustainability': 'energy-sustainability',
+  'Finance & Quantitative': 'finance-quant',
+  Telecommunications: 'telecoms',
+  'Research & Academia': 'research-academia',
+  Manufacturing: 'eng-mechanical',
+}
+
+function sectorToIndustryId(sector?: string): CvFormData['industry'] {
+  return sector ? (SECTOR_TO_INDUSTRY[sector] ?? '') : ''
+}
+
+function createEmptyForm(prefill?: ToolPrefill): CvFormData {
   return {
     contact: { fullName: '', email: '', phone: '', location: '', linkedin: '' },
     summary: '',
@@ -35,13 +56,16 @@ function createEmptyForm(): CvFormData {
     education: [createEducationEntry('education-initial')],
     experience: [],
     projects: [],
-    industry: '',
-    targetCompany: '',
+    industry: sectorToIndustryId(prefill?.sector),
+    targetCompany: prefill?.company ?? '',
   }
 }
 
-export default function CvWizard() {
-  const [form, setForm] = useState<CvFormData>(createEmptyForm)
+export default function CvWizard({ prefill }: { prefill?: ToolPrefill }) {
+  // Lazy init from the deep-link prefill: runs once, so typed data is never
+  // clobbered. "Start over" clears the prefill too (createEmptyForm() below).
+  const [form, setForm] = useState<CvFormData>(() => createEmptyForm(prefill))
+  const [showPrefillNote, setShowPrefillNote] = useState(!!(prefill?.company || prefill?.role))
   const [step, setStep] = useState<WizardStep>(1)
   const [errors, setErrors] = useState<CvFormErrors>({})
   const [isGenerating, setIsGenerating] = useState(false)
@@ -251,6 +275,24 @@ export default function CvWizard() {
   // ---- Wizard state ----
   return (
     <div ref={topRef} className="flex flex-col gap-6 max-w-3xl mx-auto">
+      {showPrefillNote && (
+        <div className="flex items-start justify-between gap-3 rounded-xl bg-accent-light/60 border border-indigo-100 px-4 py-3">
+          <p className="text-sm text-primary">
+            Prefilled from <span className="font-semibold">{prefill?.company || 'the listing'}</span>
+            {prefill?.role ? <> — {prefill.role}</> : null}. Your target company and industry are set in
+            the last step.
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowPrefillNote(false)}
+            aria-label="Dismiss"
+            className="text-muted hover:text-primary transition-colors flex-shrink-0"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {step === 1 && (
         <CvImport
           onImport={handleImport}

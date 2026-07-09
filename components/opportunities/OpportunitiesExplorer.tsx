@@ -1,10 +1,18 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import OpportunityListCard, { defaultMatchBadge } from '@/components/OpportunityListCard'
 import MatchBadge from '@/components/match/MatchBadge'
+import GuestMatchPanel, {
+  emptyGuestInputs,
+  guestProfileFrom,
+  loadGuestState,
+  persistGuestState,
+  type GuestMatchState,
+} from '@/components/opportunities/GuestMatchPanel'
 import { useTracker } from '@/components/tracker/TrackerProvider'
-import { scoreMatch } from '@/lib/match'
+import Badge from '@/components/ui/Badge'
+import { BAND_BADGE_VARIANT, scoreMatch, type MatchResult } from '@/lib/match'
 import type { OpportunityView } from '@/lib/opportunities'
 
 type Sort = 'best' | 'newest' | 'salary'
@@ -33,23 +41,38 @@ export default function OpportunitiesExplorer({
   const [sort, setSort] = useState<Sort>('newest')
   const [sortTouched, setSortTouched] = useState(false)
 
-  const hasProfile = ready && !!profile
+  // Guest match inputs (visitors / students without a profile). Starts null so
+  // the first client render matches SSR; hydrated from localStorage on mount.
+  const [guest, setGuest] = useState<GuestMatchState | null>(null)
+  useEffect(() => {
+    setGuest(loadGuestState() ?? { inputs: emptyGuestInputs(), dismissed: false })
+  }, [])
+
+  // A signed-in profile always wins over the guest inputs.
+  const guestProfile = useMemo(
+    () => (profile || !guest || guest.dismissed ? null : guestProfileFrom(guest.inputs)),
+    [profile, guest]
+  )
+  const effectiveProfile = profile ?? guestProfile
+
+  const hasProfile = ready && !!effectiveProfile
   // Default to "Best match" once a profile is loaded, unless the user chose a sort.
   const effectiveSort: Sort = sortTouched ? sort : hasProfile ? 'best' : 'newest'
 
-  // Precompute scores once per profile change.
+  // Precompute full match results once per profile change — one pass feeds the
+  // sort, the min-match filter, and the guest badges.
   const scores = useMemo(() => {
-    const map = new Map<string, number | null>()
-    for (const o of all) map.set(o.id, profile ? (scoreMatch(profile, o)?.score ?? null) : null)
+    const map = new Map<string, MatchResult | null>()
+    for (const o of all) map.set(o.id, effectiveProfile ? scoreMatch(effectiveProfile, o) : null)
     return map
-  }, [all, profile])
+  }, [all, effectiveProfile])
   const sectorOptions = useMemo(() => ['All', ...uniqueSorted(all.map((o) => o.sector))], [all])
   const locationOptions = useMemo(() => ['All', ...uniqueSorted(all.map((o) => o.location))], [all])
   const durationOptions = useMemo(() => ['All', ...uniqueSorted(all.map((o) => o.duration))], [all])
 
   const { shownLive, shownDemos } = useMemo(() => {
     const q = search.trim().toLowerCase()
-    const score = (o: OpportunityView) => scores.get(o.id) ?? null
+    const score = (o: OpportunityView) => scores.get(o.id)?.score ?? null
     const run = (list: OpportunityView[]) => {
       const filtered = list.filter((o) => {
         if (q && !`${o.role} ${o.companyName}`.toLowerCase().includes(q)) return false
@@ -73,11 +96,23 @@ export default function OpportunitiesExplorer({
   const shownCount = shownLive.length + shownDemos.length
 
   function cardFor(o: OpportunityView) {
+    // Guest path: a real score computed here from the guest inputs (only exists
+    // post-mount, so no hydration mismatch). Signed-in path: MatchBadge reads
+    // the tracker profile itself.
+    const guestResult = guestProfile ? scores.get(o.id) : null
     return (
       <OpportunityListCard
         key={o.id}
         opportunity={o}
-        badge={<MatchBadge opp={o} fallback={defaultMatchBadge(o.match)} />}
+        badge={
+          guestResult ? (
+            <Badge variant={BAND_BADGE_VARIANT[guestResult.band]} title={guestResult.reasons[0]}>
+              {guestResult.score}% match
+            </Badge>
+          ) : (
+            <MatchBadge opp={o} fallback={defaultMatchBadge(o.isDemo)} />
+          )
+        }
       />
     )
   }
@@ -169,6 +204,24 @@ export default function OpportunitiesExplorer({
 
         {/* ── Listings ── */}
         <div className="flex-1 flex flex-col gap-6">
+          {/* Guest match preview — visitors and profile-less students only */}
+          {ready && !profile && guest && !guest.dismissed && (
+            <GuestMatchPanel
+              value={guest.inputs}
+              onChange={(inputs) => {
+                setGuest({ inputs, dismissed: false })
+                persistGuestState({ inputs, dismissed: false })
+              }}
+              onDismiss={() => {
+                // Dismiss also clears guest scoring so personalised scores never
+                // linger without a visible control.
+                const cleared = { inputs: emptyGuestInputs(), dismissed: true }
+                setGuest(cleared)
+                persistGuestState(cleared)
+              }}
+            />
+          )}
+
           {/* Toolbar: search + sort + count */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <div className="relative flex-1">
