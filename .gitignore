@@ -18,6 +18,9 @@
 .DS_Store
 *.pem
 
+# generated project brief (kept local, not committed)
+/PlacementOS-Overview.pdf
+
 # debug
 npm-debug.log*
 yarn-debug.log*
