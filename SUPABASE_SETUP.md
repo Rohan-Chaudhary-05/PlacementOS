@@ -23,10 +23,10 @@ The app **runs without it** (pages render, but sign-up / login / posting will sh
 6. Open a **New query**, paste [`supabase/migrations/0004_pipeline_states.sql`](supabase/migrations/0004_pipeline_states.sql),
    and **Run** it. This widens the tracker's `state` to the full application pipeline
    (Saved → Applied → Interview → Offer → Rejected). Existing rows are unaffected; safe to re-run.
-7. *(Optional — legacy.)* [`supabase/migrations/0005_checklist.sql`](supabase/migrations/0005_checklist.sql)
-   created the `student_checklist` table for the old Placement Guide readiness checklist. **That feature has
-   been removed**, so the table is no longer used by the app — you can **skip this step** on a fresh setup.
-   If you already ran it, the unused table is harmless and can be dropped with `drop table public.student_checklist;`.
+7. *(Historical note.)* Migration `0005_checklist.sql` created a `student_checklist` table for the old
+   Placement Guide readiness checklist. That feature was removed and the migration file has been retired
+   (the numbering skips from 0004 to 0006). If an older setup already ran it, the unused table is harmless
+   and can be dropped with `drop table public.student_checklist;`.
 8. Open a **New query**, paste [`supabase/migrations/0006_student_profiles.sql`](supabase/migrations/0006_student_profiles.sql),
    and **Run** it. This adds the `student_profiles` table (with row-level security) that stores each
    student's match profile (discipline, skills, target sectors, etc.) powering the personalised AI match
@@ -81,8 +81,8 @@ This creates a confirmed staff user from `STAFF_EMAIL` / `STAFF_PASSWORD` and gr
 
 ## 6. Resend (real email of new opportunities)
 To have each submitted opportunity emailed to `NOTIFY_EMAIL`:
-1. Create a free account at <https://resend.com> — **sign up with `Rohan.sc.33@gmail.com`**.
-   That lets the default sender `onboarding@resend.dev` deliver to it without verifying a domain.
+1. Create a free account at <https://resend.com> — **sign up with the inbox you set as `NOTIFY_EMAIL`**.
+   That lets Resend's testing sender `onboarding@resend.dev` deliver to it without verifying a domain.
 2. **API Keys → Create API Key**, and put it in `.env.local` as `RESEND_API_KEY`.
 
 `NOTIFY_EMAIL` (the recipient) and `RESEND_FROM` (the sender) are already set in `.env.local`.

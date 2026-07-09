@@ -57,7 +57,8 @@ npm run dev
 ```
 Configure the backend by copying your Supabase + Resend keys into `.env.local` and running the SQL migrations
 in the Supabase SQL editor — see **[SUPABASE_SETUP.md](SUPABASE_SETUP.md)** for the full walkthrough
-(migrations `0001`–`0006`). Without a configured backend the app still runs and degrades gracefully.
+(migrations `0001`–`0004`, then `0006`; `0005` was retired). Without a configured backend the app still runs
+and degrades gracefully.
 
 ## Project structure
 ```

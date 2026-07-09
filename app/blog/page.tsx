@@ -1,7 +1,12 @@
-import Link from 'next/link'
+import Badge from '@/components/ui/Badge'
+
+export const metadata = {
+  title: 'Blog · PlacementOS',
+  description:
+    'Guides, roundups and insights for UK STEM students navigating placements, AI tools, and the job market.',
+}
 
 type Post = {
-  slug: string
   title: string
   excerpt: string
   date: string
@@ -10,7 +15,6 @@ type Post = {
 
 const posts: Post[] = [
   {
-    slug: 'best-ai-tools-placement-cv-2026',
     title: 'The Best AI Tools for Writing a Standout Placement CV in 2026',
     excerpt:
       'A breakdown of the tools worth using, how to use them effectively, and what to avoid when tailoring your CV for placements.',
@@ -18,7 +22,6 @@ const posts: Post[] = [
     category: 'AI Tools',
   },
   {
-    slug: 'data-science-placements-april-2026',
     title: 'Data Science Placements Open Right Now — April 2026 Roundup',
     excerpt:
       'A curated list of the best data science and analytics placements currently accepting applications across the UK.',
@@ -26,7 +29,6 @@ const posts: Post[] = [
     category: 'Opportunities',
   },
   {
-    slug: 'what-to-expect-stem-assessment-centre',
     title: 'What to Expect at a STEM Assessment Centre',
     excerpt:
       'From group exercises to technical tests — a practical guide to preparing for and performing well on assessment day.',
@@ -34,7 +36,6 @@ const posts: Post[] = [
     category: 'Assessment Centres',
   },
   {
-    slug: 'how-to-cold-email-company-not-hiring',
     title: "How to Cold Email a Company That Isn't Actively Hiring",
     excerpt:
       'Most placements are never advertised. Here is how to write a cold email that actually gets a response.',
@@ -43,7 +44,7 @@ const posts: Post[] = [
   },
 ]
 
-const categories = ['All', 'AI Tools', 'Opportunities', 'Assessment Centres', 'Application Tips']
+const categories = ['AI Tools', 'Opportunities', 'Assessment Centres', 'Application Tips']
 
 export default function BlogPage() {
   return (
@@ -57,33 +58,28 @@ export default function BlogPage() {
           </h1>
           <p className="text-base text-muted max-w-xl leading-relaxed">
             Guides, roundups and insights for UK STEM students navigating placements,
-            AI tools, and the job market.
+            AI tools, and the job market. Articles are being written now — the first
+            batch lands before launch.
           </p>
         </div>
 
-        {/* ── Category tabs ── */}
-        <div className="flex items-center gap-6 border-b border-gray-200 mb-0 overflow-x-auto scrollbar-none">
+        {/* ── Topic chips ── */}
+        <div className="flex items-center gap-2 pb-4 border-b border-gray-200 overflow-x-auto">
           {categories.map((cat) => (
-            <button
+            <span
               key={cat}
-              className={[
-                'flex-shrink-0 pb-3 text-sm font-medium transition-colors duration-150',
-                'border-b-2 -mb-px',
-                cat === 'All'
-                  ? 'text-accent border-accent'
-                  : 'text-muted border-transparent hover:text-primary',
-              ].join(' ')}
+              className="flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium bg-gray-50 text-muted border border-gray-100"
             >
               {cat}
-            </button>
+            </span>
           ))}
         </div>
 
-        {/* ── Post list ── */}
+        {/* ── Post teasers (articles not yet published) ── */}
         <div className="pb-24">
           {posts.map((post) => (
-            <Link key={post.slug} href={`/blog/${post.slug}`} className="group block">
-              <div className="grid grid-cols-[200px_1fr] gap-8 py-8">
+            <div key={post.title}>
+              <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-2 sm:gap-8 py-8">
                 {/* Left: meta */}
                 <div className="pt-0.5">
                   <p className="text-sm text-muted font-medium">{post.category}</p>
@@ -92,14 +88,17 @@ export default function BlogPage() {
 
                 {/* Right: content */}
                 <div>
-                  <h2 className="text-xl font-semibold text-primary leading-snug mb-2 group-hover:text-accent transition-colors duration-150">
-                    {post.title}
-                  </h2>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <h2 className="text-xl font-semibold text-primary leading-snug">
+                      {post.title}
+                    </h2>
+                    <Badge variant="muted">Coming soon</Badge>
+                  </div>
                   <p className="text-sm text-muted leading-relaxed">{post.excerpt}</p>
                 </div>
               </div>
               <div className="border-t border-gray-100" />
-            </Link>
+            </div>
           ))}
         </div>
 

@@ -9,7 +9,7 @@ import MatchBreakdown from '@/components/match/MatchBreakdown'
 import { buttonClasses } from '@/components/ui/buttonStyles'
 import { WORK_MODE_LABELS } from '@/lib/constants'
 import { formatDate, formatSalaryRange } from '@/lib/format'
-import { getOpportunityForDetail } from '@/lib/opportunities'
+import { getOpportunityForDetail, type OpportunityView } from '@/lib/opportunities'
 
 export const revalidate = 300
 
@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!o) return { title: 'Opportunity not found — PlacementOS' }
   return {
     title: `${o.role} — ${o.companyName} · PlacementOS`,
-    description: o.description.slice(0, 155),
+    description: metaDescription(o.description),
   }
 }
 
@@ -31,6 +31,54 @@ function cleanHost(url: string): string {
   } catch {
     return url
   }
+}
+
+/** Deep link into an AI tool with this role preloaded. */
+function toolHref(path: string, o: OpportunityView): string {
+  const params = new URLSearchParams({ role: o.role, company: o.companyName, sector: o.sector, ref: o.id })
+  return `${path}?${params.toString()}`
+}
+
+/** Collapse whitespace and cut at a word boundary for meta descriptions. */
+function metaDescription(text: string, max = 155): string {
+  const clean = text.replace(/\s+/g, ' ').trim()
+  if (clean.length <= max) return clean
+  const cut = clean.slice(0, max)
+  const lastSpace = cut.lastIndexOf(' ')
+  return `${(lastSpace > 0 ? cut.slice(0, lastSpace) : cut).replace(/[,;:.]+$/, '')}…`
+}
+
+/** schema.org JobPosting for search engines — called for REAL listings only. */
+function jobPostingJsonLd(o: OpportunityView): string {
+  const data: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'JobPosting',
+    title: o.role,
+    description: o.description,
+    hiringOrganization: {
+      '@type': 'Organization',
+      name: o.companyName,
+      ...(o.companyWebsite ? { sameAs: o.companyWebsite } : {}),
+    },
+    jobLocation: {
+      '@type': 'Place',
+      address: { '@type': 'PostalAddress', addressLocality: o.location, addressCountry: 'GB' },
+    },
+    employmentType: 'INTERN',
+    baseSalary: {
+      '@type': 'MonetaryAmount',
+      currency: o.currency,
+      value: { '@type': 'QuantitativeValue', minValue: o.salaryMin, maxValue: o.salaryMax, unitText: 'YEAR' },
+    },
+    directApply: false,
+  }
+  // Free-text deadline: only emit validThrough when it parses as a real date.
+  if (o.deadline) {
+    const parsed = new Date(o.deadline)
+    if (!Number.isNaN(parsed.getTime())) data.validThrough = parsed.toISOString()
+  }
+  // datePosted omitted — OpportunityView does not carry created_at.
+  return JSON.stringify(data).replace(/</g, '\\u003c')
 }
 
 export default async function OpportunityDetailPage({ params }: PageProps) {
@@ -49,6 +97,11 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-surface">
+      {/* Structured data for search engines — real listings only (fabricated
+          postings in Google Jobs violate their policy). */}
+      {!o.isDemo && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jobPostingJsonLd(o) }} />
+      )}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Back link */}
         <Link
@@ -68,7 +121,7 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-card p-6 sm:p-8">
               <div className="flex flex-wrap items-center gap-2 mb-3">
                 <Badge variant="accent">{o.sector}</Badge>
-                <MatchBadge opp={o} fallback={o.match !== null ? <Badge variant="success">{o.match}% match</Badge> : null} />
+                <MatchBadge opp={o} fallback={null} />
                 {o.isDemo && <Badge variant="muted">Sample listing</Badge>}
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-primary leading-tight">{o.role}</h1>
@@ -168,6 +221,22 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-2">Track it</p>
                 <TrackerButton opportunityRef={o.id} variant="detail" />
+              </div>
+
+              {/* Prep tools preloaded with this role. */}
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-2">
+                  Prepare your application
+                </p>
+                <div className="flex flex-col gap-2">
+                  <Link href={toolHref('/ai-tools/cv-tailor', o)} className={buttonClasses('secondary', 'md', 'w-full')}>
+                    Tailor your CV
+                  </Link>
+                  <Link href={toolHref('/ai-tools/cover-letter', o)} className={buttonClasses('secondary', 'md', 'w-full')}>
+                    Draft a cover letter
+                  </Link>
+                </div>
+                <p className="text-xs text-muted mt-2">Loads this role into the tool for you.</p>
               </div>
 
               {/* Personalised "why this matches you" (students with a profile). */}

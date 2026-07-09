@@ -34,8 +34,6 @@ export type OpportunityView = {
   /** Real listings link here; demo listings are null (apply via waitlist). */
   applyUrl: string | null
   isDemo: boolean
-  /** AI-match % — demo flourish only for now. */
-  match: number | null
   /** Initials for the logo avatar. */
   logo: string
 }
@@ -66,7 +64,6 @@ function publicToView(p: PublicOpportunity): OpportunityView {
     requirements: p.requirements,
     applyUrl: p.apply_url,
     isDemo: false,
-    match: null,
     logo: initialsFor(p.company_name),
   }
 }
@@ -112,15 +109,17 @@ export function getDemoOpportunity(id: string): OpportunityView | null {
 }
 
 // ───────────────────── Sample / demo listings ─────────────────────
-// Real, well-known companies with plausible public websites. Marked isDemo so
-// the UI labels them "Sample" and routes "Apply" to the waitlist (the platform
-// is pre-launch). Replaced/augmented by real ACCEPTED listings as companies post.
+// FICTIONAL employers — the companies below are invented for illustration and
+// do not exist; any resemblance to a real organisation is coincidental. Marked
+// isDemo so the UI labels them "Sample" and routes "Apply" to the waitlist
+// (the platform is pre-launch). Replaced by real ACCEPTED listings as
+// companies post.
 export const DEMO_OPPORTUNITIES: OpportunityView[] = [
   {
     id: 'demo-1',
     role: 'Data Science Placement',
-    companyName: 'AstraZeneca',
-    companyWebsite: 'https://www.astrazeneca.com',
+    companyName: 'Helixon Bio',
+    companyWebsite: null,
     location: 'Cambridge, UK',
     workMode: 'HYBRID',
     salaryMin: 22000,
@@ -130,21 +129,20 @@ export const DEMO_OPPORTUNITIES: OpportunityView[] = [
     duration: '12 months',
     deadline: '2026-10-15',
     description:
-      'Join the Global AI & Data Science team to build ML pipelines supporting clinical trial analysis and drug discovery workflows. You will work alongside senior data scientists on real research problems, from data wrangling through to model evaluation.',
+      'Join a data science team building ML pipelines that support clinical-stage research, from data wrangling through to model evaluation. You will work alongside senior data scientists on real research problems with genuine ownership of your analyses.',
     companyValues:
-      'We follow the science, put patients first, and do the right thing. We value curiosity, collaboration and a bias for impact.',
+      'Science-led and patient-focused. We value curiosity, careful methods and clear communication.',
     requirements:
       'On track for a 2:1+ in a numerate STEM degree. Python and basic statistics. Curiosity about healthcare and biology a plus.',
     applyUrl: null,
     isDemo: true,
-    match: 94,
-    logo: 'AZ',
+    logo: 'HB',
   },
   {
     id: 'demo-2',
     role: 'Software Engineering Intern',
-    companyName: 'Arm',
-    companyWebsite: 'https://www.arm.com',
+    companyName: 'Fenchip Systems',
+    companyWebsite: null,
     location: 'Cambridge, UK',
     workMode: 'HYBRID',
     salaryMin: 28000,
@@ -154,21 +152,20 @@ export const DEMO_OPPORTUNITIES: OpportunityView[] = [
     duration: '12 months',
     deadline: '2026-10-30',
     description:
-      'Work on next-generation chip architecture tools, contributing to compilers or verification frameworks used across the global semiconductor industry. Expect real ownership of features that ship to internal engineering teams.',
+      'Work on developer tooling for chip-design workflows, contributing to compilers or verification frameworks used by hardware engineering teams. Expect real ownership of features that ship internally.',
     companyValues:
-      'We are not content with the status quo. We are different by design, we partner for success, and we are passionate about our work.',
+      'Engineering rigour without ego. We prize deep work, honest code review and shipping things that last.',
     requirements:
       'Strong programming fundamentals (C++ or Python). Interest in low-level systems, compilers or hardware. No prior chip experience required.',
     applyUrl: null,
     isDemo: true,
-    match: 87,
-    logo: 'AR',
+    logo: 'FS',
   },
   {
     id: 'demo-3',
     role: 'Quantitative Finance Placement',
-    companyName: 'Goldman Sachs',
-    companyWebsite: 'https://www.goldmansachs.com',
+    companyName: 'Graywick Markets',
+    companyWebsite: null,
     location: 'London, UK',
     workMode: 'OFFICE',
     salaryMin: 35000,
@@ -178,21 +175,20 @@ export const DEMO_OPPORTUNITIES: OpportunityView[] = [
     duration: '12 months',
     deadline: '2026-11-01',
     description:
-      'Support the Strats team in building quantitative models for risk, pricing, and portfolio analytics across global markets. You will write production code and work directly with traders and quants.',
+      'Support a quantitative team building models for risk, pricing and portfolio analytics across global markets. You will write production code and work directly with traders and quants.',
     companyValues:
-      'Client service, excellence, integrity and teamwork. We want people who are commercial, rigorous and want to grow fast.',
+      'Commercial, rigorous and collaborative. We hire people who want to grow fast and take responsibility early.',
     requirements:
       'Strong mathematics and programming (Python/C++). Comfortable with probability and linear algebra. Interest in markets.',
     applyUrl: null,
     isDemo: true,
-    match: 76,
-    logo: 'GS',
+    logo: 'GM',
   },
   {
     id: 'demo-4',
     role: 'Mechanical Engineering Placement',
-    companyName: 'Rolls-Royce',
-    companyWebsite: 'https://www.rolls-royce.com',
+    companyName: 'Kestrel Propulsion',
+    companyWebsite: null,
     location: 'Derby, UK',
     workMode: 'OFFICE',
     salaryMin: 21000,
@@ -202,21 +198,20 @@ export const DEMO_OPPORTUNITIES: OpportunityView[] = [
     duration: '12 months',
     deadline: '2026-10-20',
     description:
-      'Embedded in the Civil Aerospace division, you will assist senior engineers in structural analysis and CFD simulation for jet engine components, contributing to designs that power aircraft worldwide.',
+      'Embedded in a propulsion engineering team, you will assist senior engineers with structural analysis and CFD simulation for engine components used in civil aviation programmes.',
     companyValues:
-      'We deliver excellence, act with integrity, and operate as one team. Safety and engineering rigour come first, always.',
+      'Safety and engineering rigour come first, always. We act with integrity and operate as one team.',
     requirements:
       'On track for a 2:1+ in Mechanical or Aerospace Engineering. Familiarity with CAD/FEA tools is a plus.',
     applyUrl: null,
     isDemo: true,
-    match: 91,
-    logo: 'RR',
+    logo: 'KP',
   },
   {
     id: 'demo-5',
     role: 'Machine Learning Engineer Intern',
-    companyName: 'DeepMind',
-    companyWebsite: 'https://deepmind.google',
+    companyName: 'Cortexa Research',
+    companyWebsite: null,
     location: 'London, UK',
     workMode: 'HYBRID',
     salaryMin: 32000,
@@ -226,21 +221,20 @@ export const DEMO_OPPORTUNITIES: OpportunityView[] = [
     duration: '6 months',
     deadline: '2026-11-10',
     description:
-      'Contribute to fundamental AI safety and capabilities research. You will prototype models, run experiments, and work with researchers shipping ideas that push the field forward.',
+      'Contribute to applied machine-learning research. You will prototype models, run experiments and work with researchers turning ideas into working systems.',
     companyValues:
-      'Solve intelligence to advance science and benefit humanity. We value scientific rigour, responsibility and bold ideas.',
+      'Scientific rigour, responsibility and bold ideas — research that ships and stands up to scrutiny.',
     requirements:
       'Strong mathematical foundations and Python. Experience with PyTorch/JAX a plus. Evidence of independent projects valued.',
     applyUrl: null,
     isDemo: true,
-    match: 82,
-    logo: 'DM',
+    logo: 'CR',
   },
   {
     id: 'demo-6',
     role: 'Chemical Engineering Placement',
-    companyName: 'BP',
-    companyWebsite: 'https://www.bp.com',
+    companyName: 'Tidegreen Energy',
+    companyWebsite: null,
     location: 'Sunbury-on-Thames, UK',
     workMode: 'HYBRID',
     salaryMin: 23500,
@@ -250,21 +244,20 @@ export const DEMO_OPPORTUNITIES: OpportunityView[] = [
     duration: '12 months',
     deadline: '2026-10-25',
     description:
-      'Support the Low Carbon Solutions team in evaluating biofuels process economics and sustainability metrics for the energy transition, working on projects with real commercial weight.',
+      'Support a low-carbon projects team evaluating biofuels process economics and sustainability metrics for the energy transition, working on projects with real commercial weight.',
     companyValues:
-      'Safety, respect, excellence, courage and one team. We are reimagining energy for people and our planet.',
+      'Safety, respect and excellence. We are building practical routes to lower-carbon energy.',
     requirements:
       'On track for a 2:1+ in Chemical or Process Engineering. Interest in sustainability and the energy transition.',
     applyUrl: null,
     isDemo: true,
-    match: 68,
-    logo: 'BP',
+    logo: 'TE',
   },
   {
     id: 'demo-7',
     role: 'Technology Risk Analyst Placement',
-    companyName: 'HSBC',
-    companyWebsite: 'https://www.hsbc.com',
+    companyName: 'Ledgerstone Bank',
+    companyWebsite: null,
     location: 'London, UK',
     workMode: 'HYBRID',
     salaryMin: 26000,
@@ -274,21 +267,20 @@ export const DEMO_OPPORTUNITIES: OpportunityView[] = [
     duration: '12 months',
     deadline: '2026-10-28',
     description:
-      'Work within the Global Technology Risk function on cyber resilience programmes, regulatory compliance, and third-party risk assessments across a global bank.',
+      'Work within a technology risk function on cyber resilience programmes, regulatory compliance and third-party risk assessments across a retail and commercial bank.',
     companyValues:
-      'We value difference, succeed together, take responsibility and get it done. Integrity underpins everything we do.',
+      'We value difference, take responsibility and get it done. Integrity underpins everything we do.',
     requirements:
       'Any numerate or technology-related degree on track for a 2:1+. Interest in cyber security and risk. Strong communication.',
     applyUrl: null,
     isDemo: true,
-    match: 73,
-    logo: 'HS',
+    logo: 'LB',
   },
   {
     id: 'demo-8',
     role: 'Biomedical Data Analyst Placement',
-    companyName: 'GSK',
-    companyWebsite: 'https://www.gsk.com',
+    companyName: 'Bluepeak Biosciences',
+    companyWebsite: null,
     location: 'Stevenage, UK',
     workMode: 'OFFICE',
     salaryMin: 21500,
@@ -298,14 +290,13 @@ export const DEMO_OPPORTUNITIES: OpportunityView[] = [
     duration: '12 months',
     deadline: '2026-11-12',
     description:
-      'Analyse genomics and clinical datasets to support the Vaccines R&D pipeline, using R and Python within a regulated environment alongside experienced biostatisticians.',
+      'Analyse genomics and clinical datasets to support an early-stage research pipeline, using R and Python within a regulated environment alongside experienced biostatisticians.',
     companyValues:
-      'We are focused on patients, transparent, respectful and do the right thing. We get ahead of disease together.',
+      'Patient-focused, transparent and respectful. We do the right thing and get ahead of disease together.',
     requirements:
       'On track for a 2:1+ in a numerate or life-sciences degree. R or Python. Interest in genomics and healthcare data.',
     applyUrl: null,
     isDemo: true,
-    match: 89,
-    logo: 'GK',
+    logo: 'BB',
   },
 ]

@@ -31,12 +31,46 @@ const EMPTY_FORM: CoverLetterForm = {
 
 const INDUSTRY_OPTIONS = STEM_INDUSTRIES.map((i) => ({ value: i.id, label: i.label }))
 
+export type ToolPrefill = { role?: string; company?: string; sector?: string }
+
+// Opportunity sector (lib/constants SECTORS) → the closest StemIndustryId.
+// Kept in sync with the copy in CvWizard.tsx — the tools share no lib file.
+const SECTOR_TO_INDUSTRY: Record<string, StemIndustryId> = {
+  'Software & IT': 'software-it',
+  'Data Science & AI': 'data-ai',
+  'Aerospace & Defence': 'aerospace-defence',
+  'Biotech & Pharma': 'biotech-pharma',
+  'Healthcare & MedTech': 'healthcare-medtech',
+  'Energy & Sustainability': 'energy-sustainability',
+  'Finance & Quantitative': 'finance-quant',
+  Telecommunications: 'telecoms',
+  'Research & Academia': 'research-academia',
+  Manufacturing: 'eng-mechanical',
+}
+
+function sectorToIndustryId(sector?: string): StemIndustryId | '' {
+  return sector ? (SECTOR_TO_INDUSTRY[sector] ?? '') : ''
+}
+
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return <h2 className="text-sm font-semibold text-primary uppercase tracking-wide mb-4">{children}</h2>
 }
 
-export default function CoverLetterGenerator() {
-  const [form, setForm] = useState<CoverLetterForm>(EMPTY_FORM)
+export default function CoverLetterGenerator({ prefill }: { prefill?: ToolPrefill }) {
+  const hasPrefill = !!(prefill?.role || prefill?.company)
+  // Lazy init from the deep-link prefill: runs once, so typed data is never clobbered.
+  const [form, setForm] = useState<CoverLetterForm>(() =>
+    hasPrefill || prefill?.sector
+      ? {
+          ...EMPTY_FORM,
+          role: prefill?.role ?? '',
+          company: prefill?.company ?? '',
+          industry: sectorToIndustryId(prefill?.sector),
+          source: hasPrefill ? 'on PlacementOS' : '',
+        }
+      : EMPTY_FORM
+  )
+  const [showPrefillNote, setShowPrefillNote] = useState(hasPrefill)
   const [errors, setErrors] = useState<CoverLetterErrors>({})
   const [status, setStatus] = useState<'idle' | 'loading'>('idle')
   const [letter, setLetter] = useState<GeneratedCoverLetter | null>(null)
@@ -131,6 +165,22 @@ export default function CoverLetterGenerator() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-5">
+      {showPrefillNote && (
+        <div className="flex items-start justify-between gap-3 rounded-xl bg-accent-light/60 border border-indigo-100 px-4 py-3">
+          <p className="text-sm text-primary">
+            Prefilled from <span className="font-semibold">{prefill?.company || 'the listing'}</span>
+            {prefill?.role ? <> — {prefill.role}</> : null}. Check it over and add your details.
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowPrefillNote(false)}
+            aria-label="Dismiss"
+            className="text-muted hover:text-primary transition-colors flex-shrink-0"
+          >
+            ✕
+          </button>
+        </div>
+      )}
       <Card className="p-6 sm:p-7">
         <SectionTitle>Your details</SectionTitle>
         <div className="space-y-4">
@@ -150,7 +200,7 @@ export default function CoverLetterGenerator() {
         <SectionTitle>The role</SectionTitle>
         <div className="space-y-4">
           <div className="grid sm:grid-cols-2 gap-4">
-            <Input id="cl-company" label="Company" value={form.company} onChange={(e) => set('company', e.target.value)} error={errors.company} placeholder="AstraZeneca" />
+            <Input id="cl-company" label="Company" value={form.company} onChange={(e) => set('company', e.target.value)} error={errors.company} placeholder="Helixon Bio" />
             <Input id="cl-role" label="Role title" value={form.role} onChange={(e) => set('role', e.target.value)} error={errors.role} placeholder="Data Science Placement" />
           </div>
           <Select

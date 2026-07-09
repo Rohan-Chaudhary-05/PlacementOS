@@ -4,11 +4,15 @@
 // is never uploaded or stored anywhere; we only read its bytes locally and throw
 // them away once the text is extracted.
 //
-// PDFs are parsed with pdf.js (bundled module worker). Plain-text files are read
-// directly. Image-only / scanned PDFs yield little text (no OCR) — that is what
-// the manual-tagging fallback is for.
+// PDFs are parsed with pdf.js (bundled module worker); Word (.docx) files with
+// mammoth (dynamic import, browser build). Plain-text files are read directly.
+// Image-only / scanned PDFs yield little text (no OCR) — that is what the
+// manual-tagging fallback is for.
 
 const MAX_BYTES = 10 * 1024 * 1024 // 10 MB
+
+const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+const LEGACY_DOC_MIME = 'application/msword'
 
 export class UnsupportedCvFileError extends Error {}
 export class CvParseError extends Error {}
@@ -18,6 +22,8 @@ export function isSupportedCvFile(file: File): boolean {
   return (
     file.type === 'application/pdf' ||
     name.endsWith('.pdf') ||
+    file.type === DOCX_MIME ||
+    name.endsWith('.docx') ||
     file.type.startsWith('text/') ||
     name.endsWith('.txt') ||
     name.endsWith('.md')
@@ -30,11 +36,34 @@ export async function extractTextFromCvFile(file: File): Promise<string> {
   }
   const name = file.name.toLowerCase()
   const isPdf = file.type === 'application/pdf' || name.endsWith('.pdf')
+  const isDocx = file.type === DOCX_MIME || name.endsWith('.docx')
+  const isLegacyDoc = !isDocx && (file.type === LEGACY_DOC_MIME || name.endsWith('.doc'))
   const isText = file.type.startsWith('text/') || name.endsWith('.txt') || name.endsWith('.md')
 
   if (isPdf) return readPdf(file)
+  if (isDocx) return readDocx(file)
+  if (isLegacyDoc) {
+    throw new UnsupportedCvFileError(
+      "Old-style .doc files aren't supported. Please export your CV as PDF or .docx and try again."
+    )
+  }
   if (isText) return (await file.text()).trim()
-  throw new UnsupportedCvFileError('Please upload a PDF or a .txt file.')
+  throw new UnsupportedCvFileError('Please upload a PDF, Word (.docx), or .txt file.')
+}
+
+async function readDocx(file: File): Promise<string> {
+  // Dynamic import keeps mammoth out of the server bundle; its browser build
+  // parses locally, so the CV stays on the device.
+  const mammoth = (await import('mammoth')).default
+  let value: string
+  try {
+    ;({ value } = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() }))
+  } catch {
+    throw new CvParseError('We could not read that Word document. It may be corrupted or password-protected.')
+  }
+  // Mammoth separates paragraphs with double newlines; normalise line endings
+  // and tame blank runs so the extractor sees one logical line per row.
+  return value.replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim()
 }
 
 async function readPdf(file: File): Promise<string> {

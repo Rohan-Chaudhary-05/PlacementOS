@@ -33,6 +33,17 @@ function DeadlineBadge({ deadline }: { deadline: string | null }) {
   return <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${tone}`}>⏳ {label.text}</span>
 }
 
+/** Deep link into the cover-letter tool with this application's role preloaded. */
+function coverLetterHref(row: TrackedRow): string {
+  const params = new URLSearchParams({
+    role: row.snapshot.role,
+    company: row.snapshot.companyName,
+    sector: row.snapshot.sector,
+    ref: row.opportunity_ref,
+  })
+  return `/ai-tools/cover-letter?${params.toString()}`
+}
+
 function ItemCard({ row }: { row: TrackedRow }) {
   const { setStage, remove } = useTracker()
   const s = row.snapshot
@@ -75,6 +86,9 @@ function ItemCard({ row }: { row: TrackedRow }) {
               Apply ↗
             </a>
           )}
+          <Link href={coverLetterHref(row)} className="text-accent font-medium hover:underline">
+            Cover letter
+          </Link>
           <button
             type="button"
             onClick={() => remove(ref)}
